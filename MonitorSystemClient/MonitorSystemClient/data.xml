@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<videoInfo>
+  <video type="本地视频" id="0">
+    <name>本地视频</name>
+    <icon>/Images/16_16/folder_go.png</icon>
+    <isChecked>false</isChecked>
+    <isExpanded>true</isExpanded>
+    <children>
+      <children1>
+        <childId>0-1</childId>
+        <childName>本地视频1.wmv</childName>
+        <childIco>/Images/16_16/folder_go.png</childIco>
+        <videopath>D:\\1.wmv</videopath>
+      </children1>
+      <children2>
+        <childId>0-2</childId>
+        <childName>本地视频2.wmv</childName>
+        <childIco>/Images/16_16/folder_go.png</childIco>
+        <videopath>D:\\1.wmv</videopath>
+      </children2>
+    </children>
+  </video>
+</videoInfo>
