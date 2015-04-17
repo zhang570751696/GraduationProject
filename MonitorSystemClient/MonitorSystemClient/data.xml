@@ -10,13 +10,13 @@
         <childId>0-1</childId>
         <childName>本地视频1.wmv</childName>
         <childIco>/Images/16_16/folder_go.png</childIco>
-        <videopath>D:\\1.wmv</videopath>
+        <videopath>D:\1.wmv</videopath>
       </children1>
       <children2>
         <childId>0-2</childId>
         <childName>本地视频2.wmv</childName>
         <childIco>/Images/16_16/folder_go.png</childIco>
-        <videopath>D:\\1.wmv</videopath>
+        <videopath>D:\colorvideo0508paidui_clip.avi</videopath>
       </children2>
     </children>
   </video>

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MonitorSystemClient;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -99,7 +100,6 @@ namespace MonitorSystemClient
         /// <returns></returns>
         public IList<MonitorCameraTreeModel> CheckedItemsIgnoreRelation()
         {
-
             return GetCheckedItemsIgnoreRelation(_itemsSourceData);
         }
 
@@ -210,6 +210,53 @@ namespace MonitorSystemClient
                 e.Handled = true;
             }
         }
+
+        /// <summary>
+        /// 鼠标左键时间
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void TreeViewItem_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            TreeViewItem item = VisualUpwardSearch<TreeViewItem>(e.OriginalSource as DependencyObject) as TreeViewItem;
+            if(item != null)
+            {
+                MonitorCameraTreeModel selectModel = (MonitorCameraTreeModel)item.Header;
+                if (!selectModel.IsChecked)
+                {
+                    selectModel.IsChecked = true;
+                    if (selectModel.Parent != null)
+                    {
+                        selectModel.Parent.IsChecked = true;
+                    }
+                    if (selectModel.Children != null && selectModel.Children.Count != 0)
+                    {
+                        selectModel.SetChildrenChecked(true);
+                    }
+                    if (selectModel.Children == null || selectModel.Children.Count == 0)
+                    {
+                        //MessageBox.Show("已勾选" + selectModel.Name);
+                        // Video.PlayVideo(selectModel.VideoPath);
+                        ((MainWindow)Application.Current.MainWindow).PlayVideo(selectModel.VideoPath);
+                    }
+                }
+                else
+                {
+                    selectModel.IsChecked = false;
+                    if (selectModel.Children != null && selectModel.Children.Count != 0)
+                    {
+                        selectModel.SetChildrenChecked(false);
+                    }
+                    if (selectModel.Children == null || selectModel.Children.Count == 0)
+                    {
+                        // MessageBox.Show("已取消勾选" + selectModel.Name);
+                        ((MainWindow)Application.Current.MainWindow).CloseVideo(selectModel.VideoPath);
+                    }
+                }
+                e.Handled = true;
+            }
+        }
+
         static DependencyObject VisualUpwardSearch<T>(DependencyObject source)
         {
             while (source != null && source.GetType() != typeof(T))

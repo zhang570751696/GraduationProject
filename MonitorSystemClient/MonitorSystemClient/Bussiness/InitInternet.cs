@@ -1,5 +1,9 @@
-﻿using System;
+﻿using Emgu.CV;
+using Emgu.CV.Structure;
+using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -65,7 +69,7 @@ namespace MonitorSystemClient
         /// <summary>
         /// 关闭连接
         /// </summary>
-        public  void CloseConnect()
+        public void CloseConnect()
         {
             try
             {
@@ -77,6 +81,54 @@ namespace MonitorSystemClient
             {
                 throw new MyException("与服务器断开连接失败！");
             }
+        }
+
+        /// <summary>
+        /// 发送图像数据到服务器端
+        /// </summary>
+        /// <param name="image"></param>
+        public void SendMessage(Image<Bgr, Byte> image)
+        {
+            byte[] message = image.Bytes;
+
+            //新建一个NetWorkStream对象发送数据
+            NetworkStream netStream = new NetworkStream(clientSocket);
+            
+            // 向服务端发送message内容
+            netStream.Write(message, 0, message.Length);
+        }
+
+        /// <summary>
+        /// 接收服务端发送的图像数据
+        /// </summary>
+        /// <returns></returns>
+        public Image<Bgr, Byte> GetMessage()
+        {
+            byte[] buf = new byte[20480];
+            int size = clientSocket.Receive(buf, 0, buf.Length, SocketFlags.None);
+            MemoryStream stream = null;
+            Bitmap bitmap= null;
+            try
+            {
+                stream = new MemoryStream(buf,0,size);
+                bitmap = new Bitmap((Image)new Bitmap(stream));
+            }
+            catch(Exception ex)
+            {
+                 //吃掉异常
+            }
+            finally
+            {
+                stream.Close();
+            }
+
+            Image<Bgr, Byte> image = null;
+            if (bitmap != null)
+            {
+                image = new Image<Bgr, byte>(bitmap);
+            }
+
+            return image;
         }
     }
 }

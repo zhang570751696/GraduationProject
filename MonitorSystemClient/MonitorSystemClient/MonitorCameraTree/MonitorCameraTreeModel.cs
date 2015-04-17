@@ -188,7 +188,7 @@ namespace MonitorSystemClient
         {
             foreach (var child in Children)
             {
-                child.isChecked = _isChecked;
+                child.IsChecked = _isChecked;
                 child.SetChildrenChecked(_isChecked);
             }
         }

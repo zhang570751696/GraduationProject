@@ -1,17 +1,13 @@
-﻿using System;
+﻿using Emgu.CV;
+using Emgu.CV.Structure;
+using Emgu.CV.UI;
+using Emgu.Util;
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using System.Xml;
 
 namespace MonitorSystemClient
@@ -26,9 +22,55 @@ namespace MonitorSystemClient
         /// </summary>
         private InitInternet server;
 
+        /// <summary>
+        /// videoBox
+        /// </summary>
+        private ImageBox _videoBox = null;
+
+        /// <summary>
+        /// 显示图像委托
+        /// </summary>
+        private delegate void DelegateShowVideo();
+
+        /// <summary>
+        /// MainWidow
+        /// </summary>
         public MainWindow()
         {
             InitializeComponent();
+        }
+
+        /// <summary>
+        /// 播放视频
+        /// </summary>
+        /// <param name="videoPath"></param>
+        public void PlayVideo(string videoPath)
+        {
+            try
+            {
+                Video.OpenCapture(videoPath);
+                _videoBox.Image = Video.PlayVideo(server);
+            }
+            catch (MyException ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// 关闭视频
+        /// </summary>
+        /// <param name="videoPath"></param>
+        public void CloseVideo(string videoPath)
+        {
+            try
+            {
+                Video.CloseVideo(videoPath);
+            }
+            catch (MyException ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
         }
 
         /// <summary>
@@ -40,9 +82,13 @@ namespace MonitorSystemClient
         {
             try
             {
+                //_pictureBox = picHost.Child as System.Windows.Forms.PictureBox;
+                //_pictureBox.ImageLocation = "D:\\1.jpeg";
+                _videoBox = picHost.Child as Emgu.CV.UI.ImageBox;
                 TvTestDataBind();
                 server = new InitInternet();
                 server.InitConnect();
+
             }
             catch (MyException ex)
             {
@@ -56,22 +102,7 @@ namespace MonitorSystemClient
         private void TvTestDataBind()
         {
             IList<MonitorCameraTreeModel> treeList = new List<MonitorCameraTreeModel>();
-            //for (int i = 0; i < 5; i++)
-            //{
-            //    MonitorCameraTreeModel tree = new MonitorCameraTreeModel();
-            //    tree.Id = i.ToString();
-            //    tree.Name = "Test" + i;
-            //    tree.IsExpanded = true;
-            //    for (int j = 0; j < 5; j++)
-            //    {
-            //        MonitorCameraTreeModel child = new MonitorCameraTreeModel();
-            //        child.Id = i + "-" + j;
-            //        child.Name = "Test" + child.Id;
-            //        child.Parent = tree;
-            //        tree.Children.Add(child);
-            //    }
-            //    treeList.Add(tree);
-            //}
+          
             try
             {
                 // 加载xml文件
@@ -136,71 +167,75 @@ namespace MonitorSystemClient
             //IList<MonitorCameraTreeModel> treeList = ztvTest.CheckedItemsIgnoreRelation();
 
             //MessageBox.Show(GetIds(treeList));
-
+            MessageBox.Show("有待解决！");
         }
 
-        /// <summary>
-        /// 获取treeview名称
-        /// </summary>
-        /// <param name="treeList"></param>
-        /// <returns></returns>
-        private List<string> GetIds(IList<MonitorCameraTreeModel> treeList)
-        {
-            StringBuilder ids = new StringBuilder();
-            List<string> idNames = new List<string>();
+        ///// <summary>
+        ///// 获取treeview名称
+        ///// </summary>
+        ///// <param name="treeList"></param>
+        ///// <returns></returns>
+        //private List<string> GetIds(IList<MonitorCameraTreeModel> treeList)
+        //{
+        //    StringBuilder ids = new StringBuilder();
+        //    List<string> idNames = new List<string>();
 
-            foreach (MonitorCameraTreeModel tree in treeList)
-            {
-                //ids.Append(tree.Id).Append(",");
-                if(tree.Children.Count == 0)
-                {
-                    ids.Append(tree.VideoPath);
-                    idNames.Add(ids.ToString());
-                }
-            }
+        //    foreach (MonitorCameraTreeModel tree in treeList)
+        //    {
+        //        //ids.Append(tree.Id).Append(",");
+        //        if(tree.Children.Count == 0)
+        //        {
+        //            ids.Append(tree.VideoPath);
+        //            idNames.Add(ids.ToString());
+        //        }
+        //    }
 
-           // return ids.ToString();
-            return idNames;
-        }
+        //   // return ids.ToString();
+        //    return idNames;
+        //}
 
-        /// <summary>
-        /// 鼠标双击treeview
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void ztvTest_MouseDoubleClick(object sender, MouseButtonEventArgs e)
-        {
-            try
-            {
-                IList<MonitorCameraTreeModel> treeList = ztvTest.CheckedItemsIgnoreRelation();
-                List<string> nameList = GetIds(treeList);
+        ///// <summary>
+        ///// 鼠标双击treeview
+        ///// </summary>
+        ///// <param name="sender"></param>
+        ///// <param name="e"></param>
+        //private void ztvTest_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        //{
+        //    try
+        //    {
+        //        IList<MonitorCameraTreeModel> treeList = ztvTest.CheckedItemsIgnoreRelation();
+        //        List<string> nameList = GetIds(treeList);
 
-                if (nameList.Count > 4 || nameList.Count == 0)
-                {
-                    MessageBox.Show("最多可以播放四个视频！");
-                }
-                else
-                {
-                    // 获取视频路径
-                    //判断该视频是否在播放
-                    if (mediaOne.Source == null)
-                    {
-                        mediaOne.Source = new Uri(nameList[0]);
-                    }
-                    else
-                    {
-                        if (!nameList.Exists(sa => sa == mediaOne.Source.ToString()))
-                        {
-                            mediaOne.Source = new Uri(nameList[0]);
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("出现错误，请重试!");
-            }
-        }
+        //        if (nameList.Count > 4)
+        //        {
+        //            MessageBox.Show("最多可以播放四个视频！");
+        //        }
+        //        else if (nameList.Count == 0)
+        //        {
+        //            MessageBox.Show("未选择视频");
+        //        }
+        //        else
+        //        {
+        //            try
+        //            {
+        //                // 获取视频路径
+        //                capture = new Capture(nameList[0]);
+        //                VideoFps = (int)CvInvoke.cvGetCaptureProperty(capture, Emgu.CV.CvEnum.CAP_PROP.CV_CAP_PROP_FPS);
+        //                _videoBox.Image = null;
+        //                DelegateShowVideo d = ProcessFrame;
+        //                this.Dispatcher.Invoke(d);
+        //            }
+        //            catch (NullReferenceException)
+        //            {
+        //                MessageBox.Show("不能打开" + nameList[0]);
+        //            }
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        MessageBox.Show("出现错误，请重试!" + ex.Message);
+        //    }
+        //}
 
         /// <summary>
         /// 窗口关闭
