@@ -1,18 +1,8 @@
-﻿using MonitorSystemClient;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace MonitorSystemClient
 {
@@ -28,6 +18,7 @@ namespace MonitorSystemClient
         private IList<MonitorCameraTreeModel> _itemsSourceData;
         #endregion
 
+        #region 构造
         /// <summary>
         /// 构造
         /// </summary>
@@ -36,6 +27,9 @@ namespace MonitorSystemClient
             InitializeComponent();
         }
 
+        #endregion
+
+        #region 实现方法
         /// <summary>
         /// 控件数据
         /// </summary>
@@ -212,48 +206,48 @@ namespace MonitorSystemClient
         }
 
         /// <summary>
-        /// 鼠标左键时间
+        /// 鼠标左键事件
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void TreeViewItem_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        private void TreeViewItem_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            TreeViewItem item = VisualUpwardSearch<TreeViewItem>(e.OriginalSource as DependencyObject) as TreeViewItem;
-            if(item != null)
+            if (e.ButtonState == MouseButtonState.Pressed)
             {
-                MonitorCameraTreeModel selectModel = (MonitorCameraTreeModel)item.Header;
-                if (!selectModel.IsChecked)
+                TreeViewItem item = VisualUpwardSearch<TreeViewItem>(e.OriginalSource as DependencyObject) as TreeViewItem;
+                if (item != null)
                 {
-                    selectModel.IsChecked = true;
-                    if (selectModel.Parent != null)
+                    MonitorCameraTreeModel selectModel = (MonitorCameraTreeModel)item.Header;
+                    if (!selectModel.IsChecked)
                     {
-                        selectModel.Parent.IsChecked = true;
+                        selectModel.IsChecked = true;
+                        if (selectModel.Parent != null)
+                        {
+                            selectModel.Parent.IsChecked = true;
+                        }
+                        if (selectModel.Children != null && selectModel.Children.Count != 0)
+                        {
+                            selectModel.SetChildrenChecked(true);
+                        }
+                        if (selectModel.Children == null || selectModel.Children.Count == 0)
+                        {
+                            ((MainWindow)Application.Current.MainWindow).PlayVideoInvoke(selectModel.VideoPath);
+                        }
                     }
-                    if (selectModel.Children != null && selectModel.Children.Count != 0)
+                    else
                     {
-                        selectModel.SetChildrenChecked(true);
+                        selectModel.IsChecked = false;
+                        if (selectModel.Children != null && selectModel.Children.Count != 0)
+                        {
+                            selectModel.SetChildrenChecked(false);
+                        }
+                        if (selectModel.Children == null || selectModel.Children.Count == 0)
+                        {
+                            ((MainWindow)Application.Current.MainWindow).CloseVideoInvoke(selectModel.VideoPath);
+                        }
                     }
-                    if (selectModel.Children == null || selectModel.Children.Count == 0)
-                    {
-                        //MessageBox.Show("已勾选" + selectModel.Name);
-                        // Video.PlayVideo(selectModel.VideoPath);
-                        ((MainWindow)Application.Current.MainWindow).PlayVideo(selectModel.VideoPath);
-                    }
+                    e.Handled = true;
                 }
-                else
-                {
-                    selectModel.IsChecked = false;
-                    if (selectModel.Children != null && selectModel.Children.Count != 0)
-                    {
-                        selectModel.SetChildrenChecked(false);
-                    }
-                    if (selectModel.Children == null || selectModel.Children.Count == 0)
-                    {
-                        // MessageBox.Show("已取消勾选" + selectModel.Name);
-                        ((MainWindow)Application.Current.MainWindow).CloseVideo(selectModel.VideoPath);
-                    }
-                }
-                e.Handled = true;
             }
         }
 
@@ -264,5 +258,7 @@ namespace MonitorSystemClient
 
             return source;
         }
+
+        #endregion
     }
 }

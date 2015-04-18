@@ -5,6 +5,7 @@ using Emgu.Util;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Input;
@@ -17,6 +18,7 @@ namespace MonitorSystemClient
     /// </summary>
     public partial class MainWindow : Window
     {
+        #region 私有变量
         /// <summary>
         /// 连接服务器
         /// </summary>
@@ -28,9 +30,23 @@ namespace MonitorSystemClient
         private ImageBox _videoBox = null;
 
         /// <summary>
-        /// 显示图像委托
+        /// Video
         /// </summary>
-        private delegate void DelegateShowVideo();
+        private Video video;
+        #endregion
+
+        #region 委托
+
+        public delegate void PlayVideoDelegate(string videoPath);
+
+        public delegate void CloseVideoDelegate(string videoPath);
+
+        #endregion
+
+        #region 线程
+        private Thread myThread = null;
+        private Thread closeThread = null;
+        #endregion
 
         /// <summary>
         /// MainWidow
@@ -40,16 +56,91 @@ namespace MonitorSystemClient
             InitializeComponent();
         }
 
+        #region 实现方法
+
+        /// <summary>
+        /// 播放委托
+        /// </summary>
+        /// <param name="video"></param>
+        public void PlayVideoInvoke(string videoPath)
+        {
+            if (myThread == null)
+            {
+                myThread = new Thread(PlayVideoThread);
+                myThread.IsBackground = true;
+                myThread.Start(videoPath);
+                if (closeThread != null)
+                {
+                    if (closeThread.IsAlive)
+                    {
+                        closeThread.Abort();
+                        closeThread = null;
+                    }
+                }
+            }
+            else
+            {
+                myThread.Resume();
+            }
+        }
+
+        /// <summary>
+        ///  关闭委托
+        /// </summary>
+        /// <param name="videoPath"></param>
+        public void CloseVideoInvoke(string videoPath)
+        {
+            if (closeThread == null)
+            {
+                closeThread = new Thread(CloseVideoThread);
+                closeThread.IsBackground = true;
+                closeThread.Start(videoPath);
+
+                if (myThread != null)
+                {
+                    if (myThread.IsAlive)
+                    {
+                        myThread.Abort();
+                        myThread = null;
+                    }
+                }
+            }
+            else
+            {
+                closeThread.Resume();
+            }
+        }
+
+        /// <summary>
+        /// 播放线程
+        /// </summary>
+        /// <param name="obj"></param>
+        private void PlayVideoThread(object obj)
+        {
+            PlayVideoDelegate d = new PlayVideoDelegate(PlayVideo);
+            this.Dispatcher.BeginInvoke(d, (string)obj);
+        }
+
+        /// <summary>
+        /// 关闭线程
+        /// </summary>
+        /// <param name="obj"></param>
+        private void CloseVideoThread(object obj)
+        {
+            CloseVideoDelegate d = new CloseVideoDelegate(CloseVideo);
+            this.Dispatcher.BeginInvoke(d, (string)obj);
+        }
+
         /// <summary>
         /// 播放视频
         /// </summary>
         /// <param name="videoPath"></param>
-        public void PlayVideo(string videoPath)
+        private void PlayVideo(string videoPath)
         {
             try
             {
-                Video.OpenCapture(videoPath);
-                _videoBox.Image = Video.PlayVideo(server);
+                video.OpenCapture(videoPath, _videoBox);
+                video.PlayVideo(server);
             }
             catch (MyException ex)
             {
@@ -61,11 +152,12 @@ namespace MonitorSystemClient
         /// 关闭视频
         /// </summary>
         /// <param name="videoPath"></param>
-        public void CloseVideo(string videoPath)
+        private void CloseVideo(string videoPath)
         {
             try
             {
-                Video.CloseVideo(videoPath);
+                video.CloseVideo(videoPath);
+                _videoBox.Image = null;
             }
             catch (MyException ex)
             {
@@ -82,13 +174,13 @@ namespace MonitorSystemClient
         {
             try
             {
-                //_pictureBox = picHost.Child as System.Windows.Forms.PictureBox;
-                //_pictureBox.ImageLocation = "D:\\1.jpeg";
                 _videoBox = picHost.Child as Emgu.CV.UI.ImageBox;
+                _videoBox.Height = 280;
+                _videoBox.Width = 400;
                 TvTestDataBind();
+                video = new Video();
                 server = new InitInternet();
                 server.InitConnect();
-
             }
             catch (MyException ex)
             {
@@ -102,7 +194,7 @@ namespace MonitorSystemClient
         private void TvTestDataBind()
         {
             IList<MonitorCameraTreeModel> treeList = new List<MonitorCameraTreeModel>();
-          
+
             try
             {
                 // 加载xml文件
@@ -170,73 +262,6 @@ namespace MonitorSystemClient
             MessageBox.Show("有待解决！");
         }
 
-        ///// <summary>
-        ///// 获取treeview名称
-        ///// </summary>
-        ///// <param name="treeList"></param>
-        ///// <returns></returns>
-        //private List<string> GetIds(IList<MonitorCameraTreeModel> treeList)
-        //{
-        //    StringBuilder ids = new StringBuilder();
-        //    List<string> idNames = new List<string>();
-
-        //    foreach (MonitorCameraTreeModel tree in treeList)
-        //    {
-        //        //ids.Append(tree.Id).Append(",");
-        //        if(tree.Children.Count == 0)
-        //        {
-        //            ids.Append(tree.VideoPath);
-        //            idNames.Add(ids.ToString());
-        //        }
-        //    }
-
-        //   // return ids.ToString();
-        //    return idNames;
-        //}
-
-        ///// <summary>
-        ///// 鼠标双击treeview
-        ///// </summary>
-        ///// <param name="sender"></param>
-        ///// <param name="e"></param>
-        //private void ztvTest_MouseDoubleClick(object sender, MouseButtonEventArgs e)
-        //{
-        //    try
-        //    {
-        //        IList<MonitorCameraTreeModel> treeList = ztvTest.CheckedItemsIgnoreRelation();
-        //        List<string> nameList = GetIds(treeList);
-
-        //        if (nameList.Count > 4)
-        //        {
-        //            MessageBox.Show("最多可以播放四个视频！");
-        //        }
-        //        else if (nameList.Count == 0)
-        //        {
-        //            MessageBox.Show("未选择视频");
-        //        }
-        //        else
-        //        {
-        //            try
-        //            {
-        //                // 获取视频路径
-        //                capture = new Capture(nameList[0]);
-        //                VideoFps = (int)CvInvoke.cvGetCaptureProperty(capture, Emgu.CV.CvEnum.CAP_PROP.CV_CAP_PROP_FPS);
-        //                _videoBox.Image = null;
-        //                DelegateShowVideo d = ProcessFrame;
-        //                this.Dispatcher.Invoke(d);
-        //            }
-        //            catch (NullReferenceException)
-        //            {
-        //                MessageBox.Show("不能打开" + nameList[0]);
-        //            }
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        MessageBox.Show("出现错误，请重试!" + ex.Message);
-        //    }
-        //}
-
         /// <summary>
         /// 窗口关闭
         /// </summary>
@@ -256,5 +281,7 @@ namespace MonitorSystemClient
                 MessageBox.Show(ex.Message);
             }
         }
+
+        #endregion
     }
 }

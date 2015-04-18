@@ -44,7 +44,7 @@
                         <Style TargetType="TreeViewItem">
                             <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"></Setter>
                             <EventSetter Event="TreeViewItem.PreviewMouseRightButtonDown" Handler="TreeViewItem_PreviewMouseRightButtonDown"/>
-                            <EventSetter Event="TreeViewItem.PreviewMouseLeftButtonUp" Handler="TreeViewItem_PreviewMouseLeftButtonUp" />
+                            <EventSetter Event="TreeViewItem.PreviewMouseLeftButtonDown" Handler="TreeViewItem_PreviewMouseLeftButtonDown" />
                         </Style>
                     </TreeView.ItemContainerStyle>
                     <TreeView.ItemTemplate>

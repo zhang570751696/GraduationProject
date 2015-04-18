@@ -1,39 +1,51 @@
 ﻿using Emgu.CV;
 using Emgu.CV.Structure;
+using Emgu.CV.UI;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 
 namespace MonitorSystemClient
 {
     class Video
     {
+        #region 私有变量
         /// <summary>
         /// capture
         /// </summary>
-        private static Capture _capture;
-
-        /// <summary>
-        /// 每帧图像
-        /// </summary>
-        private static Image<Bgr, Byte> _frame;
+        private Capture _capture;
 
         /// <summary>
         /// 视频帧率
         /// </summary>
-        private static int _videoFps;
+        private int _videoFps;
 
         /// <summary>
-        /// 
+        /// ImageBox
         /// </summary>
-        public static void OpenCapture(string videoPath)
+        private ImageBox _imageBox;
+        #endregion
+
+        #region 构造方法
+        /// <summary>
+        /// 构造方法
+        /// </summary>
+        public Video()
+        {
+        }
+        #endregion 
+
+        #region 实现方法
+        
+        /// <summary>
+        /// 打开摄像头
+        /// </summary>
+        public void OpenCapture(string videoPath,ImageBox imageBox)
         {
             try
             {
                 _capture = new Capture(videoPath);
                 _videoFps = (int)CvInvoke.cvGetCaptureProperty(_capture, Emgu.CV.CvEnum.CAP_PROP.CV_CAP_PROP_FPS);
+                _imageBox = imageBox;
             }
             catch (Exception ex)
             {
@@ -46,11 +58,11 @@ namespace MonitorSystemClient
         /// </summary>
         /// <param name="server"></param>
         /// <returns></returns>
-        public static Image<Bgr, Byte> PlayVideo(InitInternet server)
+        public void PlayVideo(InitInternet server)
         {
-            try
+            while (true)
             {
-                _frame = _capture.QueryFrame();
+                Image<Bgr, Byte> _frame = _capture.QueryFrame();
                 if (_frame != null)
                 {
                     //为使播放顺畅，添加以下延时
@@ -58,21 +70,26 @@ namespace MonitorSystemClient
                     if (server.IsConnect)
                     {
                         server.SendMessage(_frame);
-                        return server.GetMessage();
+                        _frame = server.GetMessage();
+                        this.RefreshPictureBox(_frame);
                     }
                     else
                     {
-                        return _frame;
+                        try
+                        {
+                            this.RefreshPictureBox(_frame);
+                        }
+                        catch (ObjectDisposedException ex)
+                        {
+                            Thread.CurrentThread.Abort();
+                        }
                     }
                 }
                 else
                 {
-                    return null;
+                  //  image = null;
+                    break;
                 }
-            }
-            catch (Exception)
-            {
-                throw new MyException("解析视频失败");
             }
         }
 
@@ -81,7 +98,7 @@ namespace MonitorSystemClient
         /// </summary>
         /// <param name="videoPath"></param>
         /// <exception cref="CloseFailed">关闭视频失败</exception>
-        public static void CloseVideo(string videoPath)
+        public void CloseVideo(string videoPath)
         {
             try
             {
@@ -95,5 +112,19 @@ namespace MonitorSystemClient
                 throw new MyException("关闭视频失败");
             }
         }
+
+        /// <summary>
+        /// 显示图像
+        /// </summary>
+        /// <param name="image"></param>
+        private void RefreshPictureBox(Image<Bgr, Byte> image)
+        {
+            if (!this._imageBox.InvokeRequired)
+            {
+                _imageBox.Image = image;
+            }
+        }
+
+        #endregion
     }
 }

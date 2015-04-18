@@ -17,6 +17,7 @@ namespace MonitorSystemClient
     /// </summary>
     class InitInternet
     {
+        #region 私有变量
         /// <summary>
         /// 客户端socket
         /// </summary>
@@ -27,6 +28,10 @@ namespace MonitorSystemClient
         /// </summary>
         private bool isConnect;
 
+        #endregion
+
+        #region 公共变量
+
         /// <summary>
         /// 是否连接成功
         /// </summary>
@@ -36,6 +41,9 @@ namespace MonitorSystemClient
             set { this.isConnect = value; }
         }
 
+        #endregion
+
+        #region 构造方法
         /// <summary>
         /// 默认构造方法
         /// </summary>
@@ -44,6 +52,9 @@ namespace MonitorSystemClient
             this.isConnect = false;
         }
 
+        #endregion 
+
+        #region 实现方法
         /// <summary>
         /// 初始化连接
         /// </summary>
@@ -104,31 +115,39 @@ namespace MonitorSystemClient
         /// <returns></returns>
         public Image<Bgr, Byte> GetMessage()
         {
-            byte[] buf = new byte[20480];
-            int size = clientSocket.Receive(buf, 0, buf.Length, SocketFlags.None);
-            MemoryStream stream = null;
-            Bitmap bitmap= null;
             try
             {
-                stream = new MemoryStream(buf,0,size);
-                bitmap = new Bitmap((Image)new Bitmap(stream));
+                byte[] buf = new byte[20480];
+                int size = clientSocket.Receive(buf, 0, buf.Length, SocketFlags.None);
+                MemoryStream stream = null;
+                Bitmap bitmap = null;
+                try
+                {
+                    stream = new MemoryStream(buf, 0, size);
+                    bitmap = new Bitmap((Image)new Bitmap(stream));
+                }
+                catch (Exception ex)
+                {
+                    //吃掉异常
+                }
+                finally
+                {
+                    stream.Close();
+                }
+
+                Image<Bgr, Byte> image = null;
+                if (bitmap != null)
+                {
+                    image = new Image<Bgr, byte>(bitmap);
+                }
+                return image;
             }
             catch(Exception ex)
             {
-                 //吃掉异常
+                throw new MyException("接收出现错误");
             }
-            finally
-            {
-                stream.Close();
-            }
-
-            Image<Bgr, Byte> image = null;
-            if (bitmap != null)
-            {
-                image = new Image<Bgr, byte>(bitmap);
-            }
-
-            return image;
         }
+
+        #endregion
     }
 }
