@@ -4,6 +4,7 @@ using Emgu.CV.UI;
 using Emgu.Util;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Text;
 using System.Threading;
 using System.Windows;
@@ -33,6 +34,14 @@ namespace MonitorSystemClient
         /// Video
         /// </summary>
         private Video video;
+
+        private Capture capture;
+
+        /// <summary>
+        /// backgroundwork
+        /// </summary>
+        private BackgroundWorker backgroundWorker;
+
         #endregion
 
         #region 委托
@@ -64,24 +73,13 @@ namespace MonitorSystemClient
         /// <param name="video"></param>
         public void PlayVideoInvoke(string videoPath)
         {
-            if (myThread == null)
+            if (backgroundWorker.IsBusy)
             {
-                myThread = new Thread(PlayVideoThread);
-                myThread.IsBackground = true;
-                myThread.Start(videoPath);
-                if (closeThread != null)
-                {
-                    if (closeThread.IsAlive)
-                    {
-                        closeThread.Abort();
-                        closeThread = null;
-                    }
-                }
+                backgroundWorker.Dispose();
+                backgroundWorker = null;
+                InitBackgroundworker();
             }
-            else
-            {
-                myThread.Resume();
-            }
+            backgroundWorker.RunWorkerAsync(videoPath);
         }
 
         /// <summary>
@@ -90,46 +88,14 @@ namespace MonitorSystemClient
         /// <param name="videoPath"></param>
         public void CloseVideoInvoke(string videoPath)
         {
-            if (closeThread == null)
+            backgroundWorker.CancelAsync();
+            if (backgroundWorker.CancellationPending)
             {
-                closeThread = new Thread(CloseVideoThread);
-                closeThread.IsBackground = true;
-                closeThread.Start(videoPath);
-
-                if (myThread != null)
-                {
-                    if (myThread.IsAlive)
-                    {
-                        myThread.Abort();
-                        myThread = null;
-                    }
-                }
-            }
-            else
-            {
-                closeThread.Resume();
+                CloseVideo(videoPath);
             }
         }
 
-        /// <summary>
-        /// 播放线程
-        /// </summary>
-        /// <param name="obj"></param>
-        private void PlayVideoThread(object obj)
-        {
-            PlayVideoDelegate d = new PlayVideoDelegate(PlayVideo);
-            this.Dispatcher.BeginInvoke(d, (string)obj);
-        }
-
-        /// <summary>
-        /// 关闭线程
-        /// </summary>
-        /// <param name="obj"></param>
-        private void CloseVideoThread(object obj)
-        {
-            CloseVideoDelegate d = new CloseVideoDelegate(CloseVideo);
-            this.Dispatcher.BeginInvoke(d, (string)obj);
-        }
+      
 
         /// <summary>
         /// 播放视频
@@ -139,8 +105,34 @@ namespace MonitorSystemClient
         {
             try
             {
-                video.OpenCapture(videoPath, _videoBox);
-                video.PlayVideo(server);
+                if (capture == null)
+                {
+                    capture = video.GetCapture(videoPath);
+                    while (true)
+                    {
+                        Image<Bgr, Byte> frame = capture.QueryFrame();
+                        if (frame != null)
+                        {
+                            //为使播放顺畅，添加以下延时
+                            System.Threading.Thread.Sleep((int)(1000.0 / video.VideoFps - 5));
+                            if (server.IsConnect)
+                            {
+                            }
+                            else
+                            {
+                                _videoBox.Image = frame;
+                            }
+                        }
+                        else
+                        {
+                            _videoBox.Image = null;
+                        }
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("已经打开了视频，请先关闭");
+                }
             }
             catch (MyException ex)
             {
@@ -156,7 +148,7 @@ namespace MonitorSystemClient
         {
             try
             {
-                video.CloseVideo(videoPath);
+                video.CloseVideo();
                 _videoBox.Image = null;
             }
             catch (MyException ex)
@@ -179,6 +171,9 @@ namespace MonitorSystemClient
                 _videoBox.Width = 400;
                 TvTestDataBind();
                 video = new Video();
+
+                InitBackgroundworker();
+
                 server = new InitInternet();
                 server.InitConnect();
             }
@@ -186,6 +181,25 @@ namespace MonitorSystemClient
             {
                 MessageBox.Show(ex.Message);
             }
+        }
+
+        private void InitBackgroundworker()
+        {
+            backgroundWorker = new BackgroundWorker();
+            backgroundWorker.DoWork += backgroundWorker_DoWork;
+            backgroundWorker.RunWorkerCompleted += backgroundWorker_RunWorkerCompleted;
+            backgroundWorker.WorkerReportsProgress = true;
+            backgroundWorker.WorkerSupportsCancellation = true;
+        }
+
+        private void backgroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            MessageBox.Show("视频播放完毕");
+        }
+
+        private void backgroundWorker_DoWork(object sender, DoWorkEventArgs e)
+        {
+            PlayVideo(e.Argument.ToString()); ;
         }
 
         /// <summary>
@@ -274,6 +288,10 @@ namespace MonitorSystemClient
                 if (server.IsConnect)
                 {
                     server.CloseConnect();
+                }
+                if (!video.IsClose)
+                {
+                    video.CloseVideo();
                 }
             }
             catch (MyException ex)

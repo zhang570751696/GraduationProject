@@ -23,6 +23,28 @@ namespace MonitorSystemClient
         /// ImageBox
         /// </summary>
         private ImageBox _imageBox;
+
+        /// <summary>
+        /// 是否关闭
+        /// </summary>
+        private bool isClose;
+        #endregion
+
+        #region 公共变量
+        public int VideoFps
+        {
+            get { return this._videoFps; }
+            private set { }
+        }
+
+        /// <summary>
+        /// 是否关闭
+        /// </summary>
+        public bool IsClose
+        {
+            get { return this.isClose; }
+            private set { }
+        }
         #endregion
 
         #region 构造方法
@@ -35,61 +57,18 @@ namespace MonitorSystemClient
         #endregion 
 
         #region 实现方法
-        
-        /// <summary>
-        /// 打开摄像头
-        /// </summary>
-        public void OpenCapture(string videoPath,ImageBox imageBox)
+
+        public Capture GetCapture(string videoPath)
         {
             try
             {
                 _capture = new Capture(videoPath);
                 _videoFps = (int)CvInvoke.cvGetCaptureProperty(_capture, Emgu.CV.CvEnum.CAP_PROP.CV_CAP_PROP_FPS);
-                _imageBox = imageBox;
+                return _capture;
             }
             catch (Exception ex)
             {
-                throw new MyException("打开视频失败");
-            }
-        }
-
-        /// <summary>
-        /// 播放视频
-        /// </summary>
-        /// <param name="server"></param>
-        /// <returns></returns>
-        public void PlayVideo(InitInternet server)
-        {
-            while (true)
-            {
-                Image<Bgr, Byte> _frame = _capture.QueryFrame();
-                if (_frame != null)
-                {
-                    //为使播放顺畅，添加以下延时
-                    System.Threading.Thread.Sleep((int)(1000.0 / _videoFps - 5));
-                    if (server.IsConnect)
-                    {
-                        server.SendMessage(_frame);
-                        _frame = server.GetMessage();
-                        this.RefreshPictureBox(_frame);
-                    }
-                    else
-                    {
-                        try
-                        {
-                            this.RefreshPictureBox(_frame);
-                        }
-                        catch (ObjectDisposedException ex)
-                        {
-                            Thread.CurrentThread.Abort();
-                        }
-                    }
-                }
-                else
-                {
-                  //  image = null;
-                    break;
-                }
+                throw new MyException("获取Capture失败！");
             }
         }
 
@@ -98,7 +77,7 @@ namespace MonitorSystemClient
         /// </summary>
         /// <param name="videoPath"></param>
         /// <exception cref="CloseFailed">关闭视频失败</exception>
-        public void CloseVideo(string videoPath)
+        public void CloseVideo()
         {
             try
             {
@@ -106,6 +85,8 @@ namespace MonitorSystemClient
                 {
                     _capture.Dispose();
                 }
+
+                isClose = true; 
             }
             catch (Exception)
             {
