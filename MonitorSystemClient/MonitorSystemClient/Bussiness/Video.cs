@@ -20,9 +20,9 @@ namespace MonitorSystemClient
         private int _videoFps;
 
         /// <summary>
-        /// ImageBox
+        /// 视频路径
         /// </summary>
-        private ImageBox _imageBox;
+        private string videoPath;
 
         /// <summary>
         /// 是否关闭
@@ -45,6 +45,18 @@ namespace MonitorSystemClient
             get { return this.isClose; }
             private set { }
         }
+
+        public string VideoPath
+        {
+            get { return this.videoPath; }
+            private set { }
+        }
+
+        public Capture Cap
+        {
+            get { return this._capture; }
+            set { this._capture = value; }
+        }
         #endregion
 
         #region 构造方法
@@ -53,18 +65,19 @@ namespace MonitorSystemClient
         /// </summary>
         public Video()
         {
+            videoPath = string.Empty;
         }
         #endregion 
 
         #region 实现方法
 
-        public Capture GetCapture(string videoPath)
+        public void GetCapture(string videoPath)
         {
             try
             {
                 _capture = new Capture(videoPath);
                 _videoFps = (int)CvInvoke.cvGetCaptureProperty(_capture, Emgu.CV.CvEnum.CAP_PROP.CV_CAP_PROP_FPS);
-                return _capture;
+                this.videoPath = videoPath;
             }
             catch (Exception ex)
             {
@@ -84,6 +97,8 @@ namespace MonitorSystemClient
                 if (_capture != null)
                 {
                     _capture.Dispose();
+                    _capture = null;
+                    this.videoPath = null;
                 }
 
                 isClose = true; 
@@ -91,18 +106,6 @@ namespace MonitorSystemClient
             catch (Exception)
             {
                 throw new MyException("关闭视频失败");
-            }
-        }
-
-        /// <summary>
-        /// 显示图像
-        /// </summary>
-        /// <param name="image"></param>
-        private void RefreshPictureBox(Image<Bgr, Byte> image)
-        {
-            if (!this._imageBox.InvokeRequired)
-            {
-                _imageBox.Image = image;
             }
         }
 

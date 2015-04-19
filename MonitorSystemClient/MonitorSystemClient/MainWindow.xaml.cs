@@ -26,35 +26,56 @@ namespace MonitorSystemClient
         private InitInternet server;
 
         /// <summary>
-        /// videoBox
+        /// videoBoxOne
         /// </summary>
-        private ImageBox _videoBox = null;
+        private ImageBox _videoBox1 = null;
+
+        /// <summary>
+        /// videoBoxTwo
+        /// </summary>
+        private ImageBox _videoBox2= null;
+
+        /// <summary>
+        /// videoBoxThree
+        /// </summary>
+        private ImageBox _videoBox3= null;
+
+        /// <summary>
+        /// videoBoxFour
+        /// </summary>
+        private ImageBox _videoBox4 = null;
 
         /// <summary>
         /// Video
         /// </summary>
         private Video video;
 
-        private Capture capture;
+        /// <summary>
+        /// video2
+        /// </summary>
+        private Video video2;
+
+        /// <summary>
+        /// video3
+        /// </summary>
+        private Video video3;
+
+        /// <summary>
+        /// video4
+        /// </summary>
+        private Video video4;
 
         /// <summary>
         /// backgroundwork
         /// </summary>
         private BackgroundWorker backgroundWorker;
 
-        #endregion
+        private BackgroundWorker backgroundWorker2;
 
-        #region 委托
+        private BackgroundWorker backgroundWorker3;
 
-        public delegate void PlayVideoDelegate(string videoPath);
+        private BackgroundWorker backgroundWorker4;
 
-        public delegate void CloseVideoDelegate(string videoPath);
-
-        #endregion
-
-        #region 线程
-        private Thread myThread = null;
-        private Thread closeThread = null;
         #endregion
 
         /// <summary>
@@ -73,13 +94,27 @@ namespace MonitorSystemClient
         /// <param name="video"></param>
         public void PlayVideoInvoke(string videoPath)
         {
-            if (backgroundWorker.IsBusy)
+            if (!backgroundWorker.IsBusy)
             {
-                backgroundWorker.Dispose();
-                backgroundWorker = null;
-                InitBackgroundworker();
+                backgroundWorker.RunWorkerAsync(videoPath);
             }
-            backgroundWorker.RunWorkerAsync(videoPath);
+            else if (!backgroundWorker2.IsBusy)
+            {
+                backgroundWorker2.RunWorkerAsync(videoPath);
+            }
+            else if (!backgroundWorker3.IsBusy)
+            {
+                backgroundWorker3.RunWorkerAsync(videoPath);
+            }
+
+            else if (!backgroundWorker4.IsBusy)
+            {
+                backgroundWorker4.RunWorkerAsync(videoPath);
+            }
+            else
+            {
+                throw new MyException("打开的视频以达到最大限度");
+            }
         }
 
         /// <summary>
@@ -88,50 +123,69 @@ namespace MonitorSystemClient
         /// <param name="videoPath"></param>
         public void CloseVideoInvoke(string videoPath)
         {
-            backgroundWorker.CancelAsync();
-            if (backgroundWorker.CancellationPending)
+            if (video.VideoPath == videoPath)
             {
-                CloseVideo(videoPath);
+                backgroundWorker.CancelAsync();
+            }
+            else if (video2.VideoPath == videoPath)
+            {
+                backgroundWorker2.CancelAsync();
+            }
+            else if (video3.VideoPath == videoPath)
+            {
+                backgroundWorker3.CancelAsync();
+            }
+            else if (video4.VideoPath == videoPath)
+            {
+                backgroundWorker4.CancelAsync();
+            }
+            else
+            {
+                throw new MyException("未找到该视频路径");
             }
         }
-
-      
 
         /// <summary>
         /// 播放视频
         /// </summary>
         /// <param name="videoPath"></param>
-        private void PlayVideo(string videoPath)
+        /// <param name="worker"></param>
+        private void PlayVideo(string videoPath, BackgroundWorker worker, Video _video,ImageBox imagebox)
         {
             try
             {
-                if (capture == null)
+                if (_video.Cap == null)
                 {
-                    capture = video.GetCapture(videoPath);
+                    _video.GetCapture(videoPath);
                     while (true)
                     {
-                        Image<Bgr, Byte> frame = capture.QueryFrame();
+                        Image<Bgr, Byte> frame = _video.Cap.QueryFrame();
                         if (frame != null)
                         {
                             //为使播放顺畅，添加以下延时
                             System.Threading.Thread.Sleep((int)(1000.0 / video.VideoFps - 5));
                             if (server.IsConnect)
                             {
+                                server.SendMessage(frame);
+                                imagebox.Image = server.GetMessage();
                             }
                             else
                             {
-                                _videoBox.Image = frame;
+                                imagebox.Image = frame;
                             }
                         }
                         else
                         {
-                            _videoBox.Image = null;
+                            imagebox.Image = null;
+                            break;
+                        }
+
+                        if (worker.CancellationPending)
+                        {
+                            imagebox.Image = null;
+                            break;
                         }
                     }
-                }
-                else
-                {
-                    MessageBox.Show("已经打开了视频，请先关闭");
                 }
             }
             catch (MyException ex)
@@ -144,12 +198,16 @@ namespace MonitorSystemClient
         /// 关闭视频
         /// </summary>
         /// <param name="videoPath"></param>
-        private void CloseVideo(string videoPath)
+        private void CloseVideo(Video _video, ImageBox imagebox)
         {
             try
             {
-                video.CloseVideo();
-                _videoBox.Image = null;
+                if (_video != null)
+                {
+                    _video.CloseVideo();
+                    imagebox.Image = null;
+                    _video = null;
+                }
             }
             catch (MyException ex)
             {
@@ -166,13 +224,19 @@ namespace MonitorSystemClient
         {
             try
             {
-                _videoBox = picHost.Child as Emgu.CV.UI.ImageBox;
-                _videoBox.Height = 280;
-                _videoBox.Width = 400;
+                InitImageBox();
+
                 TvTestDataBind();
+
                 video = new Video();
+                video2 = new Video();
+                video3 = new Video();
+                video4 = new Video();
 
                 InitBackgroundworker();
+                InitBackgroundworker2();
+                InitBackgroundworker3();
+                InitBackgroundWorker4();
 
                 server = new InitInternet();
                 server.InitConnect();
@@ -183,6 +247,31 @@ namespace MonitorSystemClient
             }
         }
 
+        /// <summary>
+        /// 初始化ImageBox
+        /// </summary>
+        private void InitImageBox()
+        {
+             _videoBox1 = cam_ibox_One;
+            _videoBox1.Height = 280;
+            _videoBox1.Width = 400;
+
+            _videoBox2 = cam_ibox_Two;
+            _videoBox2.Height = 280;
+            _videoBox2.Width = 400;
+
+            _videoBox3 = cam_ibox_Three;
+            _videoBox3.Height = 280;
+            _videoBox3.Width = 400;
+
+            _videoBox4 = cam_ibox_Four;
+            _videoBox4.Height = 280;
+            _videoBox4.Width = 400;
+        }
+
+        /// <summary>
+        /// 初始化backgroundworker
+        /// </summary>
         private void InitBackgroundworker()
         {
             backgroundWorker = new BackgroundWorker();
@@ -192,14 +281,99 @@ namespace MonitorSystemClient
             backgroundWorker.WorkerSupportsCancellation = true;
         }
 
-        private void backgroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        /// <summary>
+        /// 初始化backgroundworker2
+        /// </summary>
+        private void InitBackgroundworker2()
         {
-            MessageBox.Show("视频播放完毕");
+            backgroundWorker2 = new BackgroundWorker();
+            backgroundWorker2.DoWork += backgroundWorker2_DoWork;
+            backgroundWorker2.RunWorkerCompleted += backgroundWorker2_RunWorkerCompleted;
+            backgroundWorker2.WorkerReportsProgress = true;
+            backgroundWorker2.WorkerSupportsCancellation = true;
         }
 
+        /// <summary>
+        /// 初始化backgroundworker3
+        /// </summary>
+        private void InitBackgroundworker3()
+        {
+            backgroundWorker3 = new BackgroundWorker();
+            backgroundWorker3.DoWork += backgroundWorker3_DoWork;
+            backgroundWorker3.RunWorkerCompleted += backgroundWorker3_RunWorkerCompleted;
+            backgroundWorker3.WorkerReportsProgress = true;
+            backgroundWorker3.WorkerSupportsCancellation = true;
+        }
+
+        /// <summary>
+        /// 初始化backgroundworker4
+        /// </summary>
+        private void InitBackgroundWorker4()
+        {
+            backgroundWorker4 = new BackgroundWorker();
+            backgroundWorker4.DoWork += backgroundWorker4_DoWork;
+            backgroundWorker4.RunWorkerCompleted += backgroundWorker4_RunWorkerCompleted;
+            backgroundWorker4.WorkerReportsProgress = true;
+            backgroundWorker4.WorkerSupportsCancellation = true;
+        }
+
+        private void backgroundWorker4_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            CloseVideo(video4, _videoBox4);
+        }
+
+        private void backgroundWorker4_DoWork(object sender, DoWorkEventArgs e)
+        {
+            BackgroundWorker worker = sender as BackgroundWorker;
+            PlayVideo(e.Argument.ToString(), worker, video4, _videoBox4);
+          
+        }
+
+        private void backgroundWorker3_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            CloseVideo(video3, _videoBox3);
+        }
+
+        private void backgroundWorker3_DoWork(object sender, DoWorkEventArgs e)
+        {
+            BackgroundWorker worker = sender as BackgroundWorker;
+
+            PlayVideo(e.Argument.ToString(), worker, video3, _videoBox3);
+        }
+
+        private void backgroundWorker2_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            CloseVideo(video2, _videoBox2);
+        }
+
+        private void backgroundWorker2_DoWork(object sender, DoWorkEventArgs e)
+        {
+            BackgroundWorker worker = sender as BackgroundWorker;
+
+            PlayVideo(e.Argument.ToString(), worker, video2, _videoBox2);
+          
+        }
+
+        /// <summary>
+        /// 操作完成、取消、异常时执行的操作
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void backgroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            CloseVideo(video, _videoBox1);
+        }
+
+        /// <summary>
+        /// 调用RunWorkerAsync时发生
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void backgroundWorker_DoWork(object sender, DoWorkEventArgs e)
         {
-            PlayVideo(e.Argument.ToString()); ;
+            BackgroundWorker worker = sender as BackgroundWorker;
+
+            PlayVideo(e.Argument.ToString(), worker, video, _videoBox1);
         }
 
         /// <summary>

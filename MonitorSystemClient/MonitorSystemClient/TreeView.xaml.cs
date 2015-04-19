@@ -212,42 +212,49 @@ namespace MonitorSystemClient
         /// <param name="e"></param>
         private void TreeViewItem_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            if (e.ButtonState == MouseButtonState.Pressed)
+            try
             {
-                TreeViewItem item = VisualUpwardSearch<TreeViewItem>(e.OriginalSource as DependencyObject) as TreeViewItem;
-                if (item != null)
+                if (e.ButtonState == MouseButtonState.Pressed)
                 {
-                    MonitorCameraTreeModel selectModel = (MonitorCameraTreeModel)item.Header;
-                    if (!selectModel.IsChecked)
+                    TreeViewItem item = VisualUpwardSearch<TreeViewItem>(e.OriginalSource as DependencyObject) as TreeViewItem;
+                    if (item != null)
                     {
-                        selectModel.IsChecked = true;
-                        if (selectModel.Parent != null)
+                        MonitorCameraTreeModel selectModel = (MonitorCameraTreeModel)item.Header;
+                        if (!selectModel.IsChecked)
                         {
-                            selectModel.Parent.IsChecked = true;
+                            selectModel.IsChecked = true;
+                            if (selectModel.Parent != null)
+                            {
+                                selectModel.Parent.IsChecked = true;
+                            }
+                            if (selectModel.Children != null && selectModel.Children.Count != 0)
+                            {
+                                selectModel.SetChildrenChecked(true);
+                            }
+                            if (selectModel.Children == null || selectModel.Children.Count == 0)
+                            {
+                                ((MainWindow)Application.Current.MainWindow).PlayVideoInvoke(selectModel.VideoPath);
+                            }
                         }
-                        if (selectModel.Children != null && selectModel.Children.Count != 0)
+                        else
                         {
-                            selectModel.SetChildrenChecked(true);
+                            selectModel.IsChecked = false;
+                            if (selectModel.Children != null && selectModel.Children.Count != 0)
+                            {
+                                selectModel.SetChildrenChecked(false);
+                            }
+                            if (selectModel.Children == null || selectModel.Children.Count == 0)
+                            {
+                                ((MainWindow)Application.Current.MainWindow).CloseVideoInvoke(selectModel.VideoPath);
+                            }
                         }
-                        if (selectModel.Children == null || selectModel.Children.Count == 0)
-                        {
-                            ((MainWindow)Application.Current.MainWindow).PlayVideoInvoke(selectModel.VideoPath);
-                        }
+                        e.Handled = true;
                     }
-                    else
-                    {
-                        selectModel.IsChecked = false;
-                        if (selectModel.Children != null && selectModel.Children.Count != 0)
-                        {
-                            selectModel.SetChildrenChecked(false);
-                        }
-                        if (selectModel.Children == null || selectModel.Children.Count == 0)
-                        {
-                            ((MainWindow)Application.Current.MainWindow).CloseVideoInvoke(selectModel.VideoPath);
-                        }
-                    }
-                    e.Handled = true;
                 }
+            }
+            catch (MyException ex)
+            {
+                MessageBox.Show(ex.Message);
             }
         }
 

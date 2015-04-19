@@ -9,6 +9,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace MonitorSystemClient
 {
@@ -124,7 +125,8 @@ namespace MonitorSystemClient
                 try
                 {
                     stream = new MemoryStream(buf, 0, size);
-                    bitmap = new Bitmap((Image)new Bitmap(stream));
+                   // bitmap = new Bitmap();
+                    bitmap = new Bitmap(stream);
                 }
                 catch (Exception ex)
                 {
