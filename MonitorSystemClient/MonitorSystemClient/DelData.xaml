@@ -1,0 +1,16 @@
+﻿<Window x:Class="MonitorSystemClient.DelData"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="删除数据" Height="183" Width="267.5">
+	<Grid HorizontalAlignment="Left" Height="139" Margin="10,9.5,0,0" VerticalAlignment="Top" Width="247.5">
+		<Label Content="要删除的数据位于:" HorizontalAlignment="Left" Margin="5.5,4.5,0,0" VerticalAlignment="Top" Height="28.293" Width="109.993"/>
+		<ComboBox x:Name="selectParent" HorizontalAlignment="Left" Margin="123.493,6.833,0,0" VerticalAlignment="Top" Width="110">
+			<ComboBoxItem Content="本地视频"/>
+			<ComboBoxItem Content="网络视频"/>
+		</ComboBox>
+		<Label Content="视频名称:" HorizontalAlignment="Left" Margin="10,49.5,0,0" VerticalAlignment="Top" Width="80.5" Height="28.46"/>
+        <Button Content="确认" Margin="15.5,101.5,0,0" Width="75" VerticalAlignment="Top" HorizontalAlignment="Left" Click="ButtonOK_Click"/>
+        <Button Content="取消" Margin="141,101.5,0,0" Width="75" VerticalAlignment="Top" HorizontalAlignment="Left" Click="ButtonCancle_Click"/>
+		<ComboBox x:Name="DelName" HorizontalAlignment="Left" Margin="123.493,49.5,0,0" VerticalAlignment="Top" Width="110" GotFocus="DelName_GotFocus"/>
+	</Grid>
+</Window>

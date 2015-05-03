@@ -267,5 +267,79 @@ namespace MonitorSystemClient
         }
 
         #endregion
+
+        /// <summary>
+        /// 点击添加
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void menuAddItem_Click(object sender, RoutedEventArgs e)
+        {
+            VideoView videoview = new VideoView();
+            videoview.ShowDialog();
+            if (videoview.Xmlmodel != null)
+            {
+                bool flag = false;
+                IList<MonitorCameraTreeModel> model = ((MainWindow)Application.Current.MainWindow).ztvTest._itemsSourceData;
+                switch (videoview.Xmlmodel.ParentName)
+                {
+                    case XmlType.AddinterData:
+                        {
+                            foreach (var item in model[1].Children)
+                            {
+                                if (item.Name == videoview.Xmlmodel.ChildName)
+                                {
+                                    flag = true;
+                                    break;
+                                }
+                            }
+                            int count = model[1].Children.Count;
+                            videoview.Xmlmodel.ChildId = "1-" + (count + 1).ToString();
+                            break; 
+                        }
+                    case XmlType.AddLocalData:
+                        {
+                            foreach (var item in model[0].Children)
+                            {
+                                if (item.Name == videoview.Xmlmodel.ChildName)
+                                {
+                                    flag = true;
+                                    break;
+                                }
+                            }
+                            int count = model[0].Children.Count;
+                            videoview.Xmlmodel.ChildId = "0-" + (count + 1).ToString();
+                            break;
+                        }
+                }
+                if (!flag)
+                {
+                    OperaXml.AddDataToXml(videoview.Xmlmodel, videoview.Xmlmodel.ParentName);
+                    ((MainWindow)Application.Current.MainWindow).TvTestDataBind();
+                }
+                else
+                {
+                    MessageBox.Show("该视频名已经存在，不允许重复");
+                }
+            }
+        }
+
+        /// <summary>
+        /// 点击删除
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void menuRemoveItem_Click(object sender, RoutedEventArgs e)
+        {
+
+            DelData delData = new DelData();
+            delData.ShowDialog();
+
+            if (delData.model != null)
+            {
+                OperaXml.RemoveXmlData(delData.model, delData.model.ParentName);
+                ((MainWindow)Application.Current.MainWindow).TvTestDataBind();
+            }
+        }
     }
 }

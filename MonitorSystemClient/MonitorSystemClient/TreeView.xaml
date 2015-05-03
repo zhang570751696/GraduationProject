@@ -38,6 +38,16 @@
                                     <Image Source="Images/16_16/delete.png" />
                                 </MenuItem.Icon>
                             </MenuItem>
+                            <MenuItem Name="menuAddItem" Header="添加新的数据" Click="menuAddItem_Click">
+                                <MenuItem.Icon>
+                                    <Image Source="Images/16_16/tick.png" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem Name="menuRemoveItem" Header="删除数据" Click="menuRemoveItem_Click">
+                                <MenuItem.Icon>
+                                    <Image Source="Images/16_16/tick.png" />
+                                </MenuItem.Icon>
+                            </MenuItem>
                         </ContextMenu>
                     </TreeView.ContextMenu>
                     <TreeView.ItemContainerStyle>

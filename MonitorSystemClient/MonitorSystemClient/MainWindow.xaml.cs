@@ -5,6 +5,7 @@ using Emgu.Util;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Drawing;
 using System.Text;
 using System.Threading;
 using System.Windows;
@@ -23,7 +24,7 @@ namespace MonitorSystemClient
         /// <summary>
         /// 连接服务器
         /// </summary>
-        private InitInternet server;
+        // private InitInternet server;
 
         /// <summary>
         /// videoBoxOne
@@ -123,25 +124,26 @@ namespace MonitorSystemClient
         /// <param name="videoPath"></param>
         public void CloseVideoInvoke(string videoPath)
         {
-            if (video.VideoPath == videoPath)
+            if (video.VideoPath == videoPath && backgroundWorker.IsBusy)
             {
                 backgroundWorker.CancelAsync();
             }
-            else if (video2.VideoPath == videoPath)
+            else if (video2.VideoPath == videoPath && backgroundWorker2.IsBusy)
             {
                 backgroundWorker2.CancelAsync();
             }
-            else if (video3.VideoPath == videoPath)
+            else if (video3.VideoPath == videoPath && backgroundWorker3.IsBusy)
             {
                 backgroundWorker3.CancelAsync();
             }
-            else if (video4.VideoPath == videoPath)
+            else if (video4.VideoPath == videoPath && backgroundWorker4.IsBusy)
             {
                 backgroundWorker4.CancelAsync();
             }
             else
             {
-                throw new MyException("未找到该视频路径");
+                 // 啥都不用管
+                 // throw new MyException("未找到该视频路径");
             }
         }
 
@@ -154,7 +156,30 @@ namespace MonitorSystemClient
         {
             try
             {
-                if (_video.Cap == null)
+                // 如果读取的是图片
+                if (videoPath.ToUpper().Contains("JPG") || videoPath.ToUpper().Contains("JPEG"))
+                {
+                    IntPtr image = CvInvoke.cvLoadImage(videoPath,
+                        Emgu.CV.CvEnum.LOAD_IMAGE_TYPE.CV_LOAD_IMAGE_ANYCOLOR);
+                    Image<Bgr, Byte> dest = new Image<Bgr, byte>(CvInvoke.cvGetSize(image));
+                    CvInvoke.cvCopy(image, dest, IntPtr.Zero);
+                    //InitInternet s = new InitInternet();
+                    //s.InitConnect();
+                    //if (s.IsConnect)
+                    //{
+                    //   // imagebox.Image = s.getImage(dest);
+                    //    s.SendMessage(dest);
+                    //  imagebox.Image = s.GetMessage();
+                    //}
+                    //else
+                    //{
+                    imagebox.Image = HeadDet.GetHead(dest);
+                       // imagebox.Image = dest;
+                    //}
+                    //s.CloseConnect();
+                }
+                // 读取视频 
+                else if (_video.Cap == null)
                 {
                     _video.GetCapture(videoPath);
                     while (true)
@@ -164,15 +189,16 @@ namespace MonitorSystemClient
                         {
                             //为使播放顺畅，添加以下延时
                             System.Threading.Thread.Sleep((int)(1000.0 / video.VideoFps - 5));
-                            if (server.IsConnect)
-                            {
-                                server.SendMessage(frame);
-                                imagebox.Image = server.GetMessage();
-                            }
-                            else
-                            {
+                            //if (server.IsConnect)
+                            //{
+                            //    server.SendMessage(frame);
+                            //    imagebox.Image = server.GetMessage();
+                            //}
+                            //else
+                            //{
+                            //imagebox.Image = HeadDet.GetHead(frame);
                                 imagebox.Image = frame;
-                            }
+                           // }
                         }
                         else
                         {
@@ -205,7 +231,7 @@ namespace MonitorSystemClient
                 if (_video != null)
                 {
                     _video.CloseVideo();
-                    imagebox.Image = null;
+                    //imagebox.Image = null;
                     _video = null;
                 }
             }
@@ -238,8 +264,8 @@ namespace MonitorSystemClient
                 InitBackgroundworker3();
                 InitBackgroundWorker4();
 
-                server = new InitInternet();
-                server.InitConnect();
+                //server = new InitInternet();
+                //server.InitConnect();
             }
             catch (MyException ex)
             {
@@ -317,11 +343,21 @@ namespace MonitorSystemClient
             backgroundWorker4.WorkerSupportsCancellation = true;
         }
 
+        /// <summary>
+        /// backgrounderworker4完成后执行
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void backgroundWorker4_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             CloseVideo(video4, _videoBox4);
         }
 
+        /// <summary>
+        /// backgrounderworker4线程执行的内容
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void backgroundWorker4_DoWork(object sender, DoWorkEventArgs e)
         {
             BackgroundWorker worker = sender as BackgroundWorker;
@@ -329,11 +365,21 @@ namespace MonitorSystemClient
           
         }
 
+        /// <summary>
+        /// backgroundworker3线程执行完成后执行的操作
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void backgroundWorker3_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             CloseVideo(video3, _videoBox3);
         }
 
+        /// <summary>
+        /// backgroundworker3线程执行的内容
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void backgroundWorker3_DoWork(object sender, DoWorkEventArgs e)
         {
             BackgroundWorker worker = sender as BackgroundWorker;
@@ -341,11 +387,21 @@ namespace MonitorSystemClient
             PlayVideo(e.Argument.ToString(), worker, video3, _videoBox3);
         }
 
+        /// <summary>
+        /// backgroudworker2线程执行的内容
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void backgroundWorker2_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             CloseVideo(video2, _videoBox2);
         }
 
+        /// <summary>
+        /// backgroundworker2线程执行的内容
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void backgroundWorker2_DoWork(object sender, DoWorkEventArgs e)
         {
             BackgroundWorker worker = sender as BackgroundWorker;
@@ -379,67 +435,9 @@ namespace MonitorSystemClient
         /// <summary>
         /// 数据绑定
         /// </summary>
-        private void TvTestDataBind()
+        public void TvTestDataBind()
         {
-            IList<MonitorCameraTreeModel> treeList = new List<MonitorCameraTreeModel>();
-
-            try
-            {
-                // 加载xml文件
-                XmlDocument doc = new XmlDocument();
-                XmlReaderSettings settings = new XmlReaderSettings();
-                // 忽略文档里面的注释
-                settings.IgnoreProcessingInstructions = true;
-                XmlReader reader = XmlReader.Create(@"../../data.xml", settings);
-                doc.Load(reader);
-                //doc.Load("data.xml");
-
-                // 得到根节点videoInfo
-                XmlNode xn = doc.SelectSingleNode("videoInfo");
-
-                // 得到根节点的所有子节点
-                XmlNodeList xnList = xn.ChildNodes;
-                foreach (var xnl in xnList)
-                {
-                    MonitorCameraTreeModel camerModel = new MonitorCameraTreeModel();
-                    // 将节点转换为元素，便于得到节点的属性值
-                    XmlElement xe = (XmlElement)xnl;
-                    // 得到Type和id两个属性的属性值
-                    camerModel.Id = xe.GetAttribute("id").ToString();
-                    // 得到Book节点的所有子节点
-                    XmlNodeList xnl0 = xe.ChildNodes;
-                    camerModel.Name = xnl0.Item(0).InnerText;
-                    camerModel.IsChecked = Convert.ToBoolean(xnl0.Item(2).InnerText);
-                    camerModel.IsExpanded = Convert.ToBoolean(xnl0.Item(3).InnerText);
-                    if (xnl0.Item(4).HasChildNodes)
-                    {
-                        XmlNodeList xnl1 = xnl0.Item(4).ChildNodes;
-                        foreach (var xnl2 in xnl1)
-                        {
-                            MonitorCameraTreeModel child = new MonitorCameraTreeModel();
-
-                            XmlElement xe1 = (XmlElement)xnl2;
-                            XmlNodeList xnl3 = xe1.ChildNodes;
-                            child.Id = xnl3.Item(0).InnerText;
-                            child.Name = xnl3.Item(1).InnerText;
-                            child.Icon = xnl3.Item(2).InnerText;
-                            child.VideoPath = xnl3.Item(3).InnerText;
-                            child.Parent = camerModel;
-                            camerModel.Children.Add(child);
-                        }
-                    }
-
-                    treeList.Add(camerModel);
-                }
-
-                reader.Close();
-            }
-            catch (Exception)
-            {
-                throw new MyException("解析xml文件出错");
-            }
-
-            ztvTest.ItemsSourceData = treeList;
+            ztvTest.ItemsSourceData = OperaXml.GetXmlData();
         }
 
         private void btnSelectId_Click(object sender, RoutedEventArgs e)
@@ -459,14 +457,14 @@ namespace MonitorSystemClient
         {
             try
             {
-                if (server.IsConnect)
-                {
-                    server.CloseConnect();
-                }
-                if (!video.IsClose)
-                {
-                    video.CloseVideo();
-                }
+                //if (server.IsConnect)
+                //{
+                //    server.CloseConnect();
+                //}
+                //if (!video.IsClose)
+                //{
+                //    video.CloseVideo();
+                //}
             }
             catch (MyException ex)
             {

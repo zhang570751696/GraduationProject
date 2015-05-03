@@ -7,9 +7,9 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading.Tasks;
-using System.Runtime.Serialization.Formatters.Binary;
 
 namespace MonitorSystemClient
 {
@@ -96,18 +96,78 @@ namespace MonitorSystemClient
         }
 
         /// <summary>
+        /// 仅供测试使用
+        /// </summary>
+        /// <param name="image"></param>
+        /// <returns></returns>
+        public Image<Bgr, Byte> getImage(Image<Bgr, Byte> image)
+        {
+            Bitmap bit = image.ToBitmap();
+            MemoryStream ms = null;
+            try
+            {
+                ms = new MemoryStream();
+                bit.Save(ms, System.Drawing.Imaging.ImageFormat.Bmp);
+                byte[] message = ms.GetBuffer();
+                ms.Close();
+                MemoryStream ms1 = new MemoryStream(message);
+                Bitmap bm = (Bitmap)Image.FromStream(ms1);
+
+                Image<Bgr, Byte> im = new Image<Bgr, byte>(bm);
+                ms1.Close();
+                return im;
+            }
+              
+            catch(Exception ex)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
         /// 发送图像数据到服务器端
         /// </summary>
         /// <param name="image"></param>
         public void SendMessage(Image<Bgr, Byte> image)
         {
-            byte[] message = image.Bytes;
+            try
+            {
+                Bitmap bit = image.ToBitmap();
+                MemoryStream ms = null;
+                ms = new MemoryStream();
+                bit.Save(ms, System.Drawing.Imaging.ImageFormat.Bmp);
+                byte[] message = ms.GetBuffer();
+                long length = ms.Length;
+                ms.Close();
 
-            //新建一个NetWorkStream对象发送数据
-            NetworkStream netStream = new NetworkStream(clientSocket);
-            
-            // 向服务端发送message内容
-            netStream.Write(message, 0, message.Length);
+                // 向服务端发送图像流的长度大小
+                //int sendLength = 1024;
+                //int size = message.Length;
+                // 图片大小
+                byte[] imageSize = System.Text.Encoding.Unicode.GetBytes(length.ToString());
+
+                NetworkStream netstream = new NetworkStream(clientSocket);
+                netstream.Write(imageSize, 0, imageSize.Length);
+
+
+                MemoryStream ms1 = new MemoryStream(message);
+                // 循环发送文件内容
+                while (true)
+                {
+                    byte[] bits = new byte[1024];
+                    int r = ms1.Read(bits, 0, bits.Length);
+                    if (r <= 0) break;
+                    clientSocket.Send(bits, r, SocketFlags.None);
+                }
+
+                ms1.Position = 0;
+                ms1.Close();
+                
+            }
+            catch (Exception ex)
+            {
+                throw new MyException("发送图像数据失败");
+            }
         }
 
         /// <summary>
@@ -118,31 +178,26 @@ namespace MonitorSystemClient
         {
             try
             {
-                byte[] buf = new byte[20480];
-                int size = clientSocket.Receive(buf, 0, buf.Length, SocketFlags.None);
-                MemoryStream stream = null;
-                Bitmap bitmap = null;
-                try
+                byte[] buf = new byte[20];
+                int contlen = clientSocket.Receive(buf, 0, buf.Length, SocketFlags.None);
+                int cont = BitConverter.ToInt32(buf, 0);
+                int size = 0;
+                MemoryStream stream = new MemoryStream();
+                while (size < cont)
                 {
-                    stream = new MemoryStream(buf, 0, size);
-                   // bitmap = new Bitmap();
-                    bitmap = new Bitmap(stream);
-                }
-                catch (Exception ex)
-                {
-                    //吃掉异常
-                }
-                finally
-                {
-                    stream.Close();
+                    byte[] bits = new byte[1024];
+                    int r = clientSocket.Receive(bits, 0, bits.Length, SocketFlags.None);
+                    if (r <= 0) break;
+                    stream.Write(bits, 0, r);
+                    size += r;
                 }
 
-                Image<Bgr, Byte> image = null;
-                if (bitmap != null)
-                {
-                    image = new Image<Bgr, byte>(bitmap);
-                }
-                return image;
+                //MemoryStream ms1 = new MemoryStream(buf);
+                Bitmap bm = (Bitmap)Image.FromStream(stream);
+                Image<Bgr, Byte> im = new Image<Bgr, byte>(bm);
+                stream.Close();
+
+                return im;
             }
             catch(Exception ex)
             {

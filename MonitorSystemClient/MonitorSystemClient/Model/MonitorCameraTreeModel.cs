@@ -102,7 +102,8 @@ namespace MonitorSystemClient
         {
             get
             {
-                return String.Format("{0}-{1}", Id, Name);
+                //return String.Format("{0}-{1}", Id, Name);
+                return VideoPath;
             }
         }
 
