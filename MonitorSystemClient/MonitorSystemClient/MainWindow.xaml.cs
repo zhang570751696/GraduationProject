@@ -1,17 +1,10 @@
 ﻿using Emgu.CV;
 using Emgu.CV.Structure;
 using Emgu.CV.UI;
-using Emgu.Util;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
-using System.Text;
-using System.Threading;
 using System.Windows;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Xml;
 
 namespace MonitorSystemClient
 {
@@ -34,12 +27,12 @@ namespace MonitorSystemClient
         /// <summary>
         /// videoBoxTwo
         /// </summary>
-        private ImageBox _videoBox2= null;
+        private ImageBox _videoBox2 = null;
 
         /// <summary>
         /// videoBoxThree
         /// </summary>
-        private ImageBox _videoBox3= null;
+        private ImageBox _videoBox3 = null;
 
         /// <summary>
         /// videoBoxFour
@@ -76,6 +69,11 @@ namespace MonitorSystemClient
         private BackgroundWorker backgroundWorker3;
 
         private BackgroundWorker backgroundWorker4;
+
+        /// <summary>
+        /// 是否全屏
+        /// </summary>
+        private bool boxOneIsFull;
 
         #endregion
 
@@ -142,8 +140,8 @@ namespace MonitorSystemClient
             }
             else
             {
-                 // 啥都不用管
-                 // throw new MyException("未找到该视频路径");
+                // 啥都不用管
+                // throw new MyException("未找到该视频路径");
             }
         }
 
@@ -152,7 +150,7 @@ namespace MonitorSystemClient
         /// </summary>
         /// <param name="videoPath"></param>
         /// <param name="worker"></param>
-        private void PlayVideo(string videoPath, BackgroundWorker worker, Video _video,ImageBox imagebox)
+        private void PlayVideo(string videoPath, BackgroundWorker worker, Video _video, ImageBox imagebox)
         {
             try
             {
@@ -174,7 +172,7 @@ namespace MonitorSystemClient
                     //else
                     //{
                     imagebox.Image = HeadDet.GetHead(dest);
-                       // imagebox.Image = dest;
+                    // imagebox.Image = dest;
                     //}
                     //s.CloseConnect();
                 }
@@ -182,13 +180,14 @@ namespace MonitorSystemClient
                 else if (_video.Cap == null)
                 {
                     _video.GetCapture(videoPath);
+                    int count = 0;
                     while (true)
                     {
                         Image<Bgr, Byte> frame = _video.Cap.QueryFrame();
                         if (frame != null)
                         {
                             //为使播放顺畅，添加以下延时
-                            System.Threading.Thread.Sleep((int)(1000.0 / video.VideoFps - 5));
+                            // System.Threading.Thread.Sleep((int)(1000.0 / video.VideoFps - 5));
                             //if (server.IsConnect)
                             //{
                             //    server.SendMessage(frame);
@@ -196,9 +195,22 @@ namespace MonitorSystemClient
                             //}
                             //else
                             //{
-                            //imagebox.Image = HeadDet.GetHead(frame);
-                                imagebox.Image = frame;
-                           // }
+
+                            if (boxOneIsFull)
+                            {
+                                frame = frame.Resize(1000, 600, Emgu.CV.CvEnum.INTER.CV_INTER_LINEAR);
+                            }
+                            else
+                            {
+                                frame = frame.Resize(400, 280, Emgu.CV.CvEnum.INTER.CV_INTER_LINEAR);
+                            }
+                            if ((count % 10) == 0)
+                            {
+                                imagebox.Image = HeadDet.GetHead(frame);
+                            }
+
+                            // imagebox.Image = frame;
+                            // }
                         }
                         else
                         {
@@ -278,7 +290,7 @@ namespace MonitorSystemClient
         /// </summary>
         private void InitImageBox()
         {
-             _videoBox1 = cam_ibox_One;
+            _videoBox1 = cam_ibox_One;
             _videoBox1.Height = 280;
             _videoBox1.Width = 400;
 
@@ -293,6 +305,8 @@ namespace MonitorSystemClient
             _videoBox4 = cam_ibox_Four;
             _videoBox4.Height = 280;
             _videoBox4.Width = 400;
+
+            boxOneIsFull = false;
         }
 
         /// <summary>
@@ -362,7 +376,7 @@ namespace MonitorSystemClient
         {
             BackgroundWorker worker = sender as BackgroundWorker;
             PlayVideo(e.Argument.ToString(), worker, video4, _videoBox4);
-          
+
         }
 
         /// <summary>
@@ -407,7 +421,7 @@ namespace MonitorSystemClient
             BackgroundWorker worker = sender as BackgroundWorker;
 
             PlayVideo(e.Argument.ToString(), worker, video2, _videoBox2);
-          
+
         }
 
         /// <summary>
@@ -473,5 +487,17 @@ namespace MonitorSystemClient
         }
 
         #endregion
+
+        private void BoxtwoDoubleClick(object sender, System.Windows.Forms.MouseEventArgs e)
+        {
+
+        }
+
+        private void BoxOneDoubleClick(object sender, System.Windows.Forms.MouseEventArgs e)
+        {
+            _videoBox1.Width = 1000;
+            _videoBox1.Height = 600;
+            boxOneIsFull = !boxOneIsFull;
+        }
     }
 }

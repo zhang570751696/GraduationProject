@@ -15,19 +15,24 @@ namespace MonitorSystemClient
         {
             try
             {
-                using (HaarCascade cascade = new HaarCascade(@"cascades.xml"))
+                double scale = 1.5;
+                Image<Bgr,Byte> smallframe = image.Resize(1/scale,Emgu.CV.CvEnum.INTER.CV_INTER_LINEAR);
+                
+                using (HaarCascade cascade = new HaarCascade(@"../../cascades.xml"))
                 {
-                    using (Image<Gray, Byte> gray = image.Convert<Gray, Byte>())
-                    {
-                        gray._EqualizeHist();
-                        MCvAvgComp[] facesDetected = cascade.Detect(gray, 1.1, 10, Emgu.CV.CvEnum.HAAR_DETECTION_TYPE.DO_CANNY_PRUNING, new Size(20, 20));
+                    MCvAvgComp[][] faceDetected = smallframe.DetectHaarCascade(
+                        cascade,
+                        1.1,
+                        2,
+                        Emgu.CV.CvEnum.HAAR_DETECTION_TYPE.DO_CANNY_PRUNING,
+                        new Size(30, 30));
 
-                        foreach (var det in facesDetected)
-                        {
-                            image.Draw(det.rect, new Bgr(Color.Blue), 2);
-                        }
+                    foreach (var item in faceDetected[0])
+                    {
+                        image.Draw(item.rect, new Bgr(Color.Red), 3);
                     }
                 }
+               
             }
             catch (Exception ex)
             {

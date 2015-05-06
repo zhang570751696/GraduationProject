@@ -9,11 +9,6 @@
       <children>
         <childId>0-1</childId>
         <childName>本地视频1</childName>
-        <videopath>D:\1.wmv</videopath>
-      </children>
-      <children>
-        <childId>0-2</childId>
-        <childName>本地视频2</childName>
         <videopath>D:\colorvideo0508paidui_clip.avi</videopath>
       </children>
     </child>

@@ -26,11 +26,11 @@
 				</my:TreeView>
 			</Border>
 		</DockPanel>
-		<WindowsFormsHost x:Name="picHostOne" HorizontalAlignment="Left" Height="262.5" Margin="234,34,0,0" VerticalAlignment="Top" Width="318">
-            <WinFormUI:ImageBox x:Name="cam_ibox_One" FunctionalMode="Minimum"/>
+		<WindowsFormsHost x:Name="picHostOne" HorizontalAlignment="Left" Height="262.5" Margin="234,34,0,0" VerticalAlignment="Top" Width="318" >
+            <WinFormUI:ImageBox x:Name="cam_ibox_One" FunctionalMode="Minimum" MouseDoubleClick="BoxOneDoubleClick"/>
 		</WindowsFormsHost>
 		<WindowsFormsHost x:Name="picHostTwo" HorizontalAlignment="Left" Height="262.5" Margin="588,34,0,0" VerticalAlignment="Top" Width="318">
-			<WinFormUI:ImageBox x:Name="cam_ibox_Two" FunctionalMode="Minimum"/>
+			<WinFormUI:ImageBox x:Name="cam_ibox_Two" FunctionalMode="Minimum" MouseDoubleClick="BoxtwoDoubleClick"/>
 		</WindowsFormsHost>
 		<WindowsFormsHost x:Name="picHostThree" HorizontalAlignment="Left" Height="262.5" Margin="234,337,0,0" VerticalAlignment="Top" Width="318">
 			<WinFormUI:ImageBox x:Name="cam_ibox_Three" FunctionalMode="Minimum"/>

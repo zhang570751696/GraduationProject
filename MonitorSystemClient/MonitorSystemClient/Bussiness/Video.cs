@@ -1,8 +1,5 @@
 ﻿using Emgu.CV;
-using Emgu.CV.Structure;
-using Emgu.CV.UI;
 using System;
-using System.Threading;
 
 namespace MonitorSystemClient
 {
@@ -71,6 +68,10 @@ namespace MonitorSystemClient
 
         #region 实现方法
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="videoPath"></param>
         public void GetCapture(string videoPath)
         {
             try
