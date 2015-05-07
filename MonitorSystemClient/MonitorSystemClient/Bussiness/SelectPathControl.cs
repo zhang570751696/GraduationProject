@@ -1,34 +1,51 @@
 ﻿using System.Windows;
-using FolderBrowserDialog = System.Windows.Forms.FolderBrowserDialog;
-using DialogResult = System.Windows.Forms.DialogResult;
 using Button = System.Windows.Controls.Button;
 using Control = System.Windows.Controls.Control;
+using DialogResult = System.Windows.Forms.DialogResult;
+using FolderBrowserDialog = System.Windows.Forms.FolderBrowserDialog;
 using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
 using SaveFileDialog = Microsoft.Win32.SaveFileDialog;
 
 namespace SelectFile
 {
+    /// <summary>
+    /// 路径选择文件类型
+    /// </summary>
     public enum SelectModeType
     {
-        /// <summary> 选择文件
+        /// <summary> 
+        /// 选择文件
         /// </summary>
         SelectFile,
-        /// <summary> 选择文件夹
+
+        /// <summary> 
+        /// 选择文件夹
         /// </summary>
+        /// 
         SelectFolder,
-        /// <summary> 保存文件
+
+        /// <summary> 
+        /// 保存文件
         /// </summary>
         SaveFile
     }
 
+    /// <summary>
+    /// 路径选择文件类
+    /// </summary>
     [TemplatePart(Name = "SelectBtn", Type = typeof(Button))]
     public class SelectPathControl : Control
     {
         #region 属性
 
+        /// <summary>
+        /// 
+        /// </summary>
         public static readonly DependencyProperty PathProperty =
         DependencyProperty.Register("Path", typeof(string), typeof(SelectPathControl), new PropertyMetadata(string.Empty));
-        /// <summary> 选择的路径
+        
+        /// <summary> 
+        /// 选择的路径
         /// </summary>
         public string Path
         {
@@ -39,7 +56,9 @@ namespace SelectFile
 
         public static readonly DependencyProperty FilterProperty =
         DependencyProperty.Register("Filter", typeof(string), typeof(SelectPathControl), new PropertyMetadata("All|*.*"));
-        /// <summary> 文件格式过滤器。
+       
+        /// <summary> 
+        /// 文件格式过滤器。
         /// </summary>
         public string Filter
         {
@@ -49,7 +68,9 @@ namespace SelectFile
 
         public static readonly DependencyProperty SelectModeProperty =
             DependencyProperty.Register("SelectMode", typeof(SelectModeType), typeof(SelectPathControl), new PropertyMetadata(SelectModeType.SelectFile));
-        /// <summary> 选择格式
+       
+        /// <summary> 
+        /// 选择格式
         /// </summary>
         public SelectModeType SelectMode
         {
@@ -59,11 +80,22 @@ namespace SelectFile
 
         #endregion
 
+        #region 静态构造方法
+        /// <summary>
+        /// 构造方法
+        /// </summary>
         static SelectPathControl()
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(SelectPathControl), new FrameworkPropertyMetadata(typeof(SelectPathControl)));
         }
 
+        #endregion
+
+        #region 实现方法
+
+        /// <summary>
+        /// 重写模板方法
+        /// </summary>
         public override void OnApplyTemplate()
         {
             base.OnApplyTemplate();
@@ -84,7 +116,8 @@ namespace SelectFile
 
         #region 按钮相应
 
-        /// <summary> 设置保存的文件名称
+        /// <summary> 
+        /// 设置保存的文件名称
         /// </summary>
         private void OpenSaveFileDialog()
         {
@@ -94,7 +127,8 @@ namespace SelectFile
             Path = dlg.FileName;
         }
 
-        /// <summary> 选择文件
+        /// <summary> 
+        /// 选择文件
         /// </summary>
         private void OpenSelectFileDialog()
         {
@@ -104,7 +138,8 @@ namespace SelectFile
             Path = dlg.FileName;
         }
 
-        /// <summary> 选择文件夹
+        /// <summary> 
+        /// 选择文件夹
         /// </summary>
         private void OpenSelectFolderDialog()
         {
@@ -113,6 +148,8 @@ namespace SelectFile
             if (!res) return;
             Path = dlg.SelectedPath;
         }
+
+        #endregion
 
         #endregion
     }

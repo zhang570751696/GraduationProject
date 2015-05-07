@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MonitorSystemClient
 {
-    class MyException:Exception
+    /// <summary>
+    /// 自定义异常类
+    /// </summary>
+    public class MyException:Exception
     {
         /// <summary>
         /// 自定义异常

@@ -8,7 +8,13 @@ using System.Xml.Linq;
 
 namespace MonitorSystemClient
 {
-
+    /// <summary>
+    /// 操作Xml类型
+    /// AddLocalData    添加本地数据
+    /// AddinterData    添加网络数据
+    /// RemovrLocalData 移除本地数据
+    /// RemoveinterData 移除网络数据
+    /// </summary>
     public enum XmlType
     {
         AddLocalData = 1,
@@ -22,12 +28,15 @@ namespace MonitorSystemClient
     /// </summary>
    public class OperaXml
     {
-        private static string xmlPath = @"../../data.xml";
+       /// <summary>
+       /// 默认xml路径
+       /// </summary>
+        private static string xmlPath = @"../../data/data.xml";
 
         /// <summary>
         /// 获取xml内容
         /// </summary>
-        /// <returns></returns>
+        /// <returns>读取到的数据</returns>
         public static IList<MonitorCameraTreeModel> GetXmlData()
         {
             IList<MonitorCameraTreeModel> treeList = new List<MonitorCameraTreeModel>();
@@ -91,7 +100,8 @@ namespace MonitorSystemClient
        /// <summary>
        /// 插入子节点数据
        /// </summary>
-       /// <param name="model"></param>
+       /// <param name="model">待添加xml数据</param>
+       /// <param name="type">添加类型</param>
         public static void AddDataToXml(XmlModel model,XmlType type)
         {
             // 加载xml文件
@@ -141,8 +151,8 @@ namespace MonitorSystemClient
        /// <summary>
        /// 删除数据
        /// </summary>
-       /// <param name="model"></param>
-       /// <param name="type"></param>
+       /// <param name="model">待删除的xml</param>
+       /// <param name="type">删除类型</param>
         public static void RemoveXmlData(XmlModel model, XmlType type)
         {
             // 加载xml文件

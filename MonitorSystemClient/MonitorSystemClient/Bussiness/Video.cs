@@ -3,7 +3,10 @@ using System;
 
 namespace MonitorSystemClient
 {
-    class Video
+    /// <summary>
+    /// 视频类
+    /// </summary>
+    public class Video
     {
         #region 私有变量
         /// <summary>
@@ -69,27 +72,28 @@ namespace MonitorSystemClient
         #region 实现方法
 
         /// <summary>
-        /// 
+        /// 获取capture
         /// </summary>
-        /// <param name="videoPath"></param>
-        public void GetCapture(string videoPath)
+        /// <param name="videoPath">视频路径</param>
+        /// <returns>capture</returns>
+        public Capture GetCapture(string videoPath)
         {
             try
             {
                 _capture = new Capture(videoPath);
                 _videoFps = (int)CvInvoke.cvGetCaptureProperty(_capture, Emgu.CV.CvEnum.CAP_PROP.CV_CAP_PROP_FPS);
                 this.videoPath = videoPath;
+                return _capture;
             }
             catch (Exception ex)
             {
-                throw new MyException("获取Capture失败！");
+                throw new MyException("打开视频出错");
             }
         }
 
         /// <summary>
         /// 关闭视频
         /// </summary>
-        /// <param name="videoPath"></param>
         /// <exception cref="CloseFailed">关闭视频失败</exception>
         public void CloseVideo()
         {

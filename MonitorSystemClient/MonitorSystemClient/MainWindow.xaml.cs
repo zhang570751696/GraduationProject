@@ -5,6 +5,7 @@ using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Windows;
+using System.Windows.Threading;
 
 namespace MonitorSystemClient
 {
@@ -14,10 +15,6 @@ namespace MonitorSystemClient
     public partial class MainWindow : Window
     {
         #region 私有变量
-        /// <summary>
-        /// 连接服务器
-        /// </summary>
-        // private InitInternet server;
 
         /// <summary>
         /// videoBoxOne
@@ -25,57 +22,43 @@ namespace MonitorSystemClient
         private ImageBox _videoBox1 = null;
 
         /// <summary>
-        /// videoBoxTwo
-        /// </summary>
-        private ImageBox _videoBox2 = null;
-
-        /// <summary>
-        /// videoBoxThree
-        /// </summary>
-        private ImageBox _videoBox3 = null;
-
-        /// <summary>
-        /// videoBoxFour
-        /// </summary>
-        private ImageBox _videoBox4 = null;
-
-        /// <summary>
         /// Video
         /// </summary>
         private Video video;
-
-        /// <summary>
-        /// video2
-        /// </summary>
-        private Video video2;
-
-        /// <summary>
-        /// video3
-        /// </summary>
-        private Video video3;
-
-        /// <summary>
-        /// video4
-        /// </summary>
-        private Video video4;
 
         /// <summary>
         /// backgroundwork
         /// </summary>
         private BackgroundWorker backgroundWorker;
 
-        private BackgroundWorker backgroundWorker2;
-
-        private BackgroundWorker backgroundWorker3;
-
-        private BackgroundWorker backgroundWorker4;
-
         /// <summary>
         /// 是否全屏
         /// </summary>
         private bool boxOneIsFull;
 
+        /// <summary>
+        /// 是否开启检测
+        /// </summary>
+        private bool IsOpenChecked;
+
+        /// <summary>
+        /// WPF的定时器使用DispatchTimer类对象
+        /// </summary>
+        private DispatcherTimer dTimer;
+
+        /// <summary>
+        /// 开始检测时间
+        /// </summary>
+        private DateTime startTime;
+
+        /// <summary>
+        /// 初始化图片加载位置
+        /// </summary>
+        private string picPath = @"../../Images/Display/display.png";
+
         #endregion
+
+        #region 构造方法
 
         /// <summary>
         /// MainWidow
@@ -84,59 +67,66 @@ namespace MonitorSystemClient
         {
             InitializeComponent();
         }
+        #endregion
 
         #region 实现方法
 
         /// <summary>
         /// 播放委托
         /// </summary>
-        /// <param name="video"></param>
-        public void PlayVideoInvoke(string videoPath)
+        /// <param name="model">数据模型</param>
+        public void PlayVideoInvoke(MonitorCameraTreeModel model)
         {
             if (!backgroundWorker.IsBusy)
             {
-                backgroundWorker.RunWorkerAsync(videoPath);
-            }
-            else if (!backgroundWorker2.IsBusy)
-            {
-                backgroundWorker2.RunWorkerAsync(videoPath);
-            }
-            else if (!backgroundWorker3.IsBusy)
-            {
-                backgroundWorker3.RunWorkerAsync(videoPath);
-            }
+                this.Lable_VideoPath.Content = model.VideoPath;
+                this.Lable_VideoName.Content = model.Name;
+                
+                //定时器使用委托
+                dTimer.Tick += new EventHandler(dTimer_Tick);
 
-            else if (!backgroundWorker4.IsBusy)
-            {
-                backgroundWorker4.RunWorkerAsync(videoPath);
+                // 设置时间 TimeSpan(时，分，秒)
+                dTimer.Interval = new TimeSpan(0, 0, 1);
+
+                startTime = DateTime.Now;
+                
+                //启动DispatcherTimer对象dTime
+                dTimer.Start();
+
+                backgroundWorker.RunWorkerAsync(model.VideoPath);
             }
             else
             {
-                throw new MyException("打开的视频以达到最大限度");
+                throw new MyException("已经打开了视频，请先关闭视频");
             }
+        }
+
+        /// <summary>
+        /// 定时器委托
+        /// </summary>
+        /// <param name="sender">对象</param>
+        /// <param name="e">事件</param>
+        private void dTimer_Tick(object sender, EventArgs e)
+        {
+            DateTime currentTime = DateTime.Now;
+            TimeSpan ts = currentTime - startTime;
+            this.Lable_PlayTime.Content = string.Format("{0}:{1}:{2}", ts.Hours, ts.Minutes, ts.Seconds);
         }
 
         /// <summary>
         ///  关闭委托
         /// </summary>
-        /// <param name="videoPath"></param>
+        /// <param name="videoPath">视频路径</param>
         public void CloseVideoInvoke(string videoPath)
         {
             if (video.VideoPath == videoPath && backgroundWorker.IsBusy)
             {
+                this.Lable_VideoName.Content = "未选择视频";
+                this.Lable_VideoPath.Content = "未选择视频";
+                this.Lable_PlayTime.Content = "00:00:00";
+                dTimer.Stop();
+
                 backgroundWorker.CancelAsync();
-            }
-            else if (video2.VideoPath == videoPath && backgroundWorker2.IsBusy)
-            {
-                backgroundWorker2.CancelAsync();
-            }
-            else if (video3.VideoPath == videoPath && backgroundWorker3.IsBusy)
-            {
-                backgroundWorker3.CancelAsync();
-            }
-            else if (video4.VideoPath == videoPath && backgroundWorker4.IsBusy)
-            {
-                backgroundWorker4.CancelAsync();
             }
             else
             {
@@ -148,102 +138,73 @@ namespace MonitorSystemClient
         /// <summary>
         /// 播放视频
         /// </summary>
-        /// <param name="videoPath"></param>
-        /// <param name="worker"></param>
-        private void PlayVideo(string videoPath, BackgroundWorker worker, Video _video, ImageBox imagebox)
+        /// <param name="videoPath">视频路径</param>
+        private void PlayVideo(string videoPath)
         {
             try
             {
-                // 如果读取的是图片
-                if (videoPath.ToUpper().Contains("JPG") || videoPath.ToUpper().Contains("JPEG"))
+                Capture cap = video.GetCapture(videoPath);
+                int count = 1;
+                while (!backgroundWorker.CancellationPending)
                 {
-                    IntPtr image = CvInvoke.cvLoadImage(videoPath,
-                        Emgu.CV.CvEnum.LOAD_IMAGE_TYPE.CV_LOAD_IMAGE_ANYCOLOR);
-                    Image<Bgr, Byte> dest = new Image<Bgr, byte>(CvInvoke.cvGetSize(image));
-                    CvInvoke.cvCopy(image, dest, IntPtr.Zero);
-                    //InitInternet s = new InitInternet();
-                    //s.InitConnect();
-                    //if (s.IsConnect)
-                    //{
-                    //   // imagebox.Image = s.getImage(dest);
-                    //    s.SendMessage(dest);
-                    //  imagebox.Image = s.GetMessage();
-                    //}
-                    //else
-                    //{
-                    imagebox.Image = HeadDet.GetHead(dest);
-                    // imagebox.Image = dest;
-                    //}
-                    //s.CloseConnect();
-                }
-                // 读取视频 
-                else if (_video.Cap == null)
-                {
-                    _video.GetCapture(videoPath);
-                    int count = 0;
-                    while (true)
+                    Image<Bgr, Byte> frame = cap.QueryFrame();
+                    if (frame != null)
                     {
-                        Image<Bgr, Byte> frame = _video.Cap.QueryFrame();
-                        if (frame != null)
+                        frame = frame.Resize(1000, 600, Emgu.CV.CvEnum.INTER.CV_INTER_LINEAR);
+                        // 如果开启检测
+                        if (IsOpenChecked)
+                        {
+                            if ((count % 8) == 0)
+                            {
+                                _videoBox1.Image = HeadDet.GetHead(frame);
+                                count = 1;
+                            }
+                            count++;
+                        }
+                        else 
                         {
                             //为使播放顺畅，添加以下延时
-                            // System.Threading.Thread.Sleep((int)(1000.0 / video.VideoFps - 5));
-                            //if (server.IsConnect)
-                            //{
-                            //    server.SendMessage(frame);
-                            //    imagebox.Image = server.GetMessage();
-                            //}
-                            //else
-                            //{
-
-                            if (boxOneIsFull)
-                            {
-                                frame = frame.Resize(1000, 600, Emgu.CV.CvEnum.INTER.CV_INTER_LINEAR);
-                            }
-                            else
-                            {
-                                frame = frame.Resize(400, 280, Emgu.CV.CvEnum.INTER.CV_INTER_LINEAR);
-                            }
-                            if ((count % 10) == 0)
-                            {
-                                imagebox.Image = HeadDet.GetHead(frame);
-                            }
-
-                            // imagebox.Image = frame;
-                            // }
-                        }
-                        else
-                        {
-                            imagebox.Image = null;
-                            break;
-                        }
-
-                        if (worker.CancellationPending)
-                        {
-                            imagebox.Image = null;
-                            break;
+                            System.Threading.Thread.Sleep((int)(1000.0 / video.VideoFps - 5));
+                            _videoBox1.Image = frame;
                         }
                     }
+                    else
+                    {
+                        break;
+                    }
                 }
+                this.DisplayPic(this.picPath);
             }
-            catch (MyException ex)
+            catch (Exception ex)
             {
-                MessageBox.Show(ex.Message);
+                this.CloseVideo(video);
+                throw new MyException("视频解析错误!");
             }
+        }
+
+        /// <summary>
+        /// 显示图片
+        /// </summary>
+        /// <param name="picPath">图片路径</param>
+        private void DisplayPic(string picPath)
+        {
+            IntPtr image = CvInvoke.cvLoadImage(picPath, Emgu.CV.CvEnum.LOAD_IMAGE_TYPE.CV_LOAD_IMAGE_ANYCOLOR);
+            Image<Bgr, Byte> dest = new Image<Bgr, byte>(CvInvoke.cvGetSize(image));
+            CvInvoke.cvCopy(image, dest, IntPtr.Zero);
+            _videoBox1.Image = HeadDet.GetHead(dest); 
         }
 
         /// <summary>
         /// 关闭视频
         /// </summary>
-        /// <param name="videoPath"></param>
-        private void CloseVideo(Video _video, ImageBox imagebox)
+        /// <param name="videoPath">视频路径</param>
+        private void CloseVideo(Video _video)
         {
             try
             {
                 if (_video != null)
                 {
                     _video.CloseVideo();
-                    //imagebox.Image = null;
                     _video = null;
                 }
             }
@@ -256,28 +217,18 @@ namespace MonitorSystemClient
         /// <summary>
         /// 加载窗体时激发
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
+        /// <param name="sender">对象</param>
+        /// <param name="e">事件</param>
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             try
             {
                 InitImageBox();
-
                 TvTestDataBind();
-
                 video = new Video();
-                video2 = new Video();
-                video3 = new Video();
-                video4 = new Video();
-
+                dTimer = new DispatcherTimer(); 
+                IsOpenChecked = false;
                 InitBackgroundworker();
-                InitBackgroundworker2();
-                InitBackgroundworker3();
-                InitBackgroundWorker4();
-
-                //server = new InitInternet();
-                //server.InitConnect();
             }
             catch (MyException ex)
             {
@@ -291,21 +242,9 @@ namespace MonitorSystemClient
         private void InitImageBox()
         {
             _videoBox1 = cam_ibox_One;
-            _videoBox1.Height = 280;
-            _videoBox1.Width = 400;
-
-            _videoBox2 = cam_ibox_Two;
-            _videoBox2.Height = 280;
-            _videoBox2.Width = 400;
-
-            _videoBox3 = cam_ibox_Three;
-            _videoBox3.Height = 280;
-            _videoBox3.Width = 400;
-
-            _videoBox4 = cam_ibox_Four;
-            _videoBox4.Height = 280;
-            _videoBox4.Width = 400;
-
+            _videoBox1.Height = 1000;
+            _videoBox1.Width = 600;
+            this.DisplayPic(this.picPath);
             boxOneIsFull = false;
         }
 
@@ -322,128 +261,40 @@ namespace MonitorSystemClient
         }
 
         /// <summary>
-        /// 初始化backgroundworker2
-        /// </summary>
-        private void InitBackgroundworker2()
-        {
-            backgroundWorker2 = new BackgroundWorker();
-            backgroundWorker2.DoWork += backgroundWorker2_DoWork;
-            backgroundWorker2.RunWorkerCompleted += backgroundWorker2_RunWorkerCompleted;
-            backgroundWorker2.WorkerReportsProgress = true;
-            backgroundWorker2.WorkerSupportsCancellation = true;
-        }
-
-        /// <summary>
-        /// 初始化backgroundworker3
-        /// </summary>
-        private void InitBackgroundworker3()
-        {
-            backgroundWorker3 = new BackgroundWorker();
-            backgroundWorker3.DoWork += backgroundWorker3_DoWork;
-            backgroundWorker3.RunWorkerCompleted += backgroundWorker3_RunWorkerCompleted;
-            backgroundWorker3.WorkerReportsProgress = true;
-            backgroundWorker3.WorkerSupportsCancellation = true;
-        }
-
-        /// <summary>
-        /// 初始化backgroundworker4
-        /// </summary>
-        private void InitBackgroundWorker4()
-        {
-            backgroundWorker4 = new BackgroundWorker();
-            backgroundWorker4.DoWork += backgroundWorker4_DoWork;
-            backgroundWorker4.RunWorkerCompleted += backgroundWorker4_RunWorkerCompleted;
-            backgroundWorker4.WorkerReportsProgress = true;
-            backgroundWorker4.WorkerSupportsCancellation = true;
-        }
-
-        /// <summary>
-        /// backgrounderworker4完成后执行
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void backgroundWorker4_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
-            CloseVideo(video4, _videoBox4);
-        }
-
-        /// <summary>
-        /// backgrounderworker4线程执行的内容
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void backgroundWorker4_DoWork(object sender, DoWorkEventArgs e)
-        {
-            BackgroundWorker worker = sender as BackgroundWorker;
-            PlayVideo(e.Argument.ToString(), worker, video4, _videoBox4);
-
-        }
-
-        /// <summary>
-        /// backgroundworker3线程执行完成后执行的操作
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void backgroundWorker3_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
-            CloseVideo(video3, _videoBox3);
-        }
-
-        /// <summary>
-        /// backgroundworker3线程执行的内容
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void backgroundWorker3_DoWork(object sender, DoWorkEventArgs e)
-        {
-            BackgroundWorker worker = sender as BackgroundWorker;
-
-            PlayVideo(e.Argument.ToString(), worker, video3, _videoBox3);
-        }
-
-        /// <summary>
-        /// backgroudworker2线程执行的内容
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void backgroundWorker2_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
-            CloseVideo(video2, _videoBox2);
-        }
-
-        /// <summary>
-        /// backgroundworker2线程执行的内容
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void backgroundWorker2_DoWork(object sender, DoWorkEventArgs e)
-        {
-            BackgroundWorker worker = sender as BackgroundWorker;
-
-            PlayVideo(e.Argument.ToString(), worker, video2, _videoBox2);
-
-        }
-
-        /// <summary>
         /// 操作完成、取消、异常时执行的操作
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
+        /// <param name="sender">对象</param>
+        /// <param name="e">事件</param>
         private void backgroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            CloseVideo(video, _videoBox1);
+            CloseVideo(video);
         }
 
         /// <summary>
         /// 调用RunWorkerAsync时发生
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
+        /// <param name="sender">对象</param>
+        /// <param name="e">事件</param>
         private void backgroundWorker_DoWork(object sender, DoWorkEventArgs e)
         {
-            BackgroundWorker worker = sender as BackgroundWorker;
-
-            PlayVideo(e.Argument.ToString(), worker, video, _videoBox1);
+            try
+            {
+                BackgroundWorker worker = sender as BackgroundWorker;
+                string path = e.Argument.ToString();
+                if (path.ToUpper().Contains("JPG") || path.ToUpper().Contains("JPEG"))
+                {
+                    this.DisplayPic(path);
+                }
+                else
+                {
+                    this.PlayVideo(path);
+                }
+            }
+            catch (MyException ex)
+            {
+                backgroundWorker.CancelAsync();
+                MessageBox.Show(ex.Message);
+            }
         }
 
         /// <summary>
@@ -454,50 +305,59 @@ namespace MonitorSystemClient
             ztvTest.ItemsSourceData = OperaXml.GetXmlData();
         }
 
-        private void btnSelectId_Click(object sender, RoutedEventArgs e)
-        {
-            //IList<MonitorCameraTreeModel> treeList = ztvTest.CheckedItemsIgnoreRelation();
-
-            //MessageBox.Show(GetIds(treeList));
-            MessageBox.Show("有待解决！");
-        }
-
         /// <summary>
         /// 窗口关闭
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
+        /// <param name="sender">对象</param>
+        /// <param name="e">事件</param>
         private void Window_Closed(object sender, EventArgs e)
         {
-            try
+            if (backgroundWorker.IsBusy)
             {
-                //if (server.IsConnect)
-                //{
-                //    server.CloseConnect();
-                //}
-                //if (!video.IsClose)
-                //{
-                //    video.CloseVideo();
-                //}
+                backgroundWorker.CancelAsync();
             }
-            catch (MyException ex)
+            if (video != null)
             {
-                MessageBox.Show(ex.Message);
+                video.CloseVideo();
+            }
+        }
+
+        /// <summary>
+        /// 双击图像
+        /// </summary>
+        /// <param name="sender">事件</param>
+        /// <param name="e">对象</param>
+        private void BoxOneDoubleClick(object sender, System.Windows.Forms.MouseEventArgs e)
+        {
+            MessageBox.Show("该功能有待实现");
+        }
+
+        /// <summary>
+        /// 点击开启检测
+        /// </summary>
+        /// <param name="sender">sender</param>
+        /// <param name="e">e</param>
+        private void OpenCheckedClick(object sender, RoutedEventArgs e)
+        {
+            if (_videoBox1.Image == null)
+            {
+                MessageBox.Show("请先打开视频");
+                return;
+            }
+
+            IsOpenChecked = !IsOpenChecked;
+           
+            // 如果已经开始进行检测了
+            if (IsOpenChecked)
+            {
+                this.buttonChecked.Content = "关闭检测";
+            }
+            else
+            {
+                this.buttonChecked.Content = "开启检测";
             }
         }
 
         #endregion
-
-        private void BoxtwoDoubleClick(object sender, System.Windows.Forms.MouseEventArgs e)
-        {
-
-        }
-
-        private void BoxOneDoubleClick(object sender, System.Windows.Forms.MouseEventArgs e)
-        {
-            _videoBox1.Width = 1000;
-            _videoBox1.Height = 600;
-            boxOneIsFull = !boxOneIsFull;
-        }
     }
 }

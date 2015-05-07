@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MonitorSystemClient
 {
@@ -102,11 +98,13 @@ namespace MonitorSystemClient
         {
             get
             {
-                //return String.Format("{0}-{1}", Id, Name);
                 return VideoPath;
             }
         }
 
+        /// <summary>
+        /// 是否选中
+        /// </summary>
         public bool IsChecked
         {
             get { return this.isChecked; }
@@ -125,14 +123,14 @@ namespace MonitorSystemClient
                             Parent.IsChecked = true;
                         }
                     }
-                    else 
-                    {
-                        // 如果取消选中子项也应该取消选中
-                        foreach (var child in Children)
-                        {
-                            child.IsChecked = false;
-                        }
-                    }
+                    //else 
+                    //{
+                    //    // 如果取消选中子项也应该取消选中
+                    //    foreach (var child in Children)
+                    //    {
+                    //        child.IsChecked = false;
+                    //    }
+                    //}
                 }
             }
         }
@@ -197,7 +195,7 @@ namespace MonitorSystemClient
         /// <summary>
         /// 设置所有子项展开状态
         /// </summary>
-        /// <param name="_isExpanded"></param>
+        /// <param name="_isExpanded">是否展开</param>
         public void SetChildrenExpanded(bool _isExpanded)
         {
             foreach (var child in Children)
@@ -213,9 +211,9 @@ namespace MonitorSystemClient
         public event PropertyChangedEventHandler PropertyChanged;
       
         /// <summary>
-        /// 
+        /// 事件通知
         /// </summary>
-        /// <param name="p"></param>
+        /// <param name="info">信息</param>
         private void NotifyPropertyChanged(string info)
         {
             if (PropertyChanged != null)

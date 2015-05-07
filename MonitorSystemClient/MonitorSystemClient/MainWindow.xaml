@@ -5,13 +5,25 @@
         xmlns:WinFormUI="clr-namespace:Emgu.CV.UI;assembly=Emgu.CV.UI"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d"
         x:Class="MonitorSystemClient.MainWindow"
-        Title="视频监控系统" Height="677" Width="1049" Loaded="Window_Loaded" Closed="Window_Closed">
+        Title="视频监控系统" Height="609.5" Width="1049" Loaded="Window_Loaded" Closed="Window_Closed" WindowStyle="ToolWindow" ResizeMode="NoResize">
 	<Grid>
 		<DockPanel>
-			<Border DockPanel.Dock="Right">
-				<StackPanel Orientation="Vertical" VerticalAlignment="Center" Margin="5">
-					<Button x:Name="btnSelectId" Content="选择" Click="btnSelectId_Click" RenderTransformOrigin="-2.607,1.001" Height="63.46" Margin="0,0,46.5,0" VerticalAlignment="Bottom"/>
-				</StackPanel>
+			<Border DockPanel.Dock="Right" Width="201.833" RenderTransformOrigin="0.499,1.014">
+				<Grid HorizontalAlignment="Left" Height="568.5" VerticalAlignment="Top" Width="201.833">
+					<GroupBox Header="视频信息" HorizontalAlignment="Left" VerticalAlignment="Top" Height="104" Width="191.833">
+						<Grid HorizontalAlignment="Left" Height="86.167" Margin="0,0,-12,0" VerticalAlignment="Top" Width="191.833">
+							<Label Content="视频名称:" HorizontalAlignment="Left" Margin="2.333,4.76,0,0" VerticalAlignment="Top"/>
+							<Label Content="视频路径:" HorizontalAlignment="Left" Margin="3.833,31.76,0,0" VerticalAlignment="Top"/>
+							<Label x:Name="Lable_VideoName" Content="未选择视频" HorizontalAlignment="Left" Margin="68.833,5.5,0,0" VerticalAlignment="Top" Width="86.457"/>
+							<Label x:Name="Lable_VideoPath" Content="未选择视频" HorizontalAlignment="Left" Margin="69.333,32.24,0,0" VerticalAlignment="Top" Width="111"/>
+							<Label Content="播放时长:" HorizontalAlignment="Left" Margin="5.833,60.26,0,0" VerticalAlignment="Top"/>
+							<Label x:Name="Lable_PlayTime" Content="00:00:00" HorizontalAlignment="Left" Margin="70.333,61.48,0,0" VerticalAlignment="Top" Width="84.957"/>
+						</Grid>
+					</GroupBox>
+					<GroupBox Header="其他信息" HorizontalAlignment="Left" Margin="0,116,0,0" VerticalAlignment="Top" Height="452.5" Width="191.833">
+						<Grid HorizontalAlignment="Right" Height="369" Margin="0,10,-2,-3.74" VerticalAlignment="Top" Width="181.833"/>
+					</GroupBox>
+				</Grid>
 			</Border>
 			<Border DockPanel.Dock="Left" Width="212.5" HorizontalAlignment="Left">
                 <my:TreeView x:Name="ztvTest"  Margin="2,5,-9,4" RenderTransformOrigin="0.5,0.5" >
@@ -25,18 +37,10 @@
 					</my:TreeView.RenderTransform>
 				</my:TreeView>
 			</Border>
+			<Button x:Name="buttonChecked" Content="开启检测" Height="34" VerticalAlignment="Top" Width="75" Margin="0,517.5,0,0" Click="OpenCheckedClick"/>
 		</DockPanel>
-		<WindowsFormsHost x:Name="picHostOne" HorizontalAlignment="Left" Height="262.5" Margin="234,34,0,0" VerticalAlignment="Top" Width="318" >
+		<WindowsFormsHost x:Name="picHostOne" HorizontalAlignment="Left" Height="478.627" Margin="238.5,10,0,0" VerticalAlignment="Top" Width="590.085" >
             <WinFormUI:ImageBox x:Name="cam_ibox_One" FunctionalMode="Minimum" MouseDoubleClick="BoxOneDoubleClick"/>
-		</WindowsFormsHost>
-		<WindowsFormsHost x:Name="picHostTwo" HorizontalAlignment="Left" Height="262.5" Margin="588,34,0,0" VerticalAlignment="Top" Width="318">
-			<WinFormUI:ImageBox x:Name="cam_ibox_Two" FunctionalMode="Minimum" MouseDoubleClick="BoxtwoDoubleClick"/>
-		</WindowsFormsHost>
-		<WindowsFormsHost x:Name="picHostThree" HorizontalAlignment="Left" Height="262.5" Margin="234,337,0,0" VerticalAlignment="Top" Width="318">
-			<WinFormUI:ImageBox x:Name="cam_ibox_Three" FunctionalMode="Minimum"/>
-		</WindowsFormsHost>
-		<WindowsFormsHost x:Name="picHostFour" HorizontalAlignment="Left" Height="262.5" Margin="588,337,0,0" VerticalAlignment="Top" Width="318">
-			<WinFormUI:ImageBox x:Name="cam_ibox_Four" FunctionalMode="Minimum"/>
 		</WindowsFormsHost>
 	</Grid>
 </Window>

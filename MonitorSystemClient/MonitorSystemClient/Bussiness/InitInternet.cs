@@ -1,15 +1,10 @@
 ﻿using Emgu.CV;
 using Emgu.CV.Structure;
 using System;
-using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MonitorSystemClient
 {
@@ -96,10 +91,10 @@ namespace MonitorSystemClient
         }
 
         /// <summary>
-        /// 仅供测试使用
+        /// 仅供测试使用(模拟网络传输)
         /// </summary>
-        /// <param name="image"></param>
-        /// <returns></returns>
+        /// <param name="image"> 测试图像</param>
+        /// <returns>解析后的图像</returns>
         public Image<Bgr, Byte> getImage(Image<Bgr, Byte> image)
         {
             Bitmap bit = image.ToBitmap();
@@ -127,7 +122,7 @@ namespace MonitorSystemClient
         /// <summary>
         /// 发送图像数据到服务器端
         /// </summary>
-        /// <param name="image"></param>
+        /// <param name="image">待传输的图像</param>
         public void SendMessage(Image<Bgr, Byte> image)
         {
             try
@@ -173,7 +168,7 @@ namespace MonitorSystemClient
         /// <summary>
         /// 接收服务端发送的图像数据
         /// </summary>
-        /// <returns></returns>
+        /// <returns>接收到的图像</returns>
         public Image<Bgr, Byte> GetMessage()
         {
             try

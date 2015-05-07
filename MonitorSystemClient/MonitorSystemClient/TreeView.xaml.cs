@@ -30,6 +30,7 @@ namespace MonitorSystemClient
         #endregion
 
         #region 实现方法
+       
         /// <summary>
         /// 控件数据
         /// </summary>
@@ -227,21 +228,42 @@ namespace MonitorSystemClient
                             {
                                 selectModel.Parent.IsChecked = true;
                             }
-                            if (selectModel.Children != null && selectModel.Children.Count != 0)
+                            if (selectModel.Children != null && selectModel.Children.Count < 2)
                             {
                                 selectModel.SetChildrenChecked(true);
                             }
+                            else
+                            {
+                                MessageBox.Show("最多播放一个视频");
+                                selectModel.IsChecked = false;
+                                return;
+                            }
                             if (selectModel.Children == null || selectModel.Children.Count == 0)
                             {
-                                ((MainWindow)Application.Current.MainWindow).PlayVideoInvoke(selectModel.VideoPath);
+                                ((MainWindow)Application.Current.MainWindow).PlayVideoInvoke(selectModel);
                             }
+                            
                         }
                         else
                         {
                             selectModel.IsChecked = false;
                             if (selectModel.Children != null && selectModel.Children.Count != 0)
                             {
+                                foreach (var model in selectModel.Children)
+                                {
+                                    if (model.IsChecked)
+                                    {
+                                        ((MainWindow)Application.Current.MainWindow).CloseVideoInvoke(model.VideoPath);
+                                    }
+                                }
                                 selectModel.SetChildrenChecked(false);
+                            }
+                            if (selectModel.Parent != null)
+                            {
+                                if (this.ChildrenSelectNum(selectModel.Parent) == 0)
+                                {
+                                    selectModel.Parent.IsChecked = false;
+                                }
                             }
                             if (selectModel.Children == null || selectModel.Children.Count == 0)
                             {
@@ -258,6 +280,25 @@ namespace MonitorSystemClient
             }
         }
 
+        /// <summary>
+        /// 获取子项选中的数量
+        /// </summary>
+        /// <param name="model">父项</param>
+        /// <returns>选中数量</returns>
+        private int ChildrenSelectNum(MonitorCameraTreeModel model)
+        {
+            int count = 0;
+            foreach (var item in model.Children)
+            {
+                if (item.IsChecked)
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
         static DependencyObject VisualUpwardSearch<T>(DependencyObject source)
         {
             while (source != null && source.GetType() != typeof(T))
@@ -266,7 +307,7 @@ namespace MonitorSystemClient
             return source;
         }
 
-        #endregion
+       
 
         /// <summary>
         /// 点击添加
@@ -341,5 +382,6 @@ namespace MonitorSystemClient
                 ((MainWindow)Application.Current.MainWindow).TvTestDataBind();
             }
         }
+        #endregion
     }
 }

@@ -1,13 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace MonitorSystemClient
+﻿namespace MonitorSystemClient
 {
+    /// <summary>
+    /// Xml数据模型
+    /// </summary>
     public class XmlModel
     {
+        #region 私有成员
         /// <summary>
         /// 节点ID号
         /// </summary>
@@ -28,6 +26,9 @@ namespace MonitorSystemClient
         /// </summary>
         private XmlType parentName;
 
+        #endregion
+
+        #region 构造方法
         /// <summary>
         /// 默认构造方法
         /// </summary>
@@ -36,6 +37,9 @@ namespace MonitorSystemClient
             videopath = string.Empty;
         }
 
+        #endregion
+
+        #region 公共成员
         /// <summary>
         /// ID号
         /// </summary>
@@ -71,5 +75,7 @@ namespace MonitorSystemClient
             get { return this.parentName; }
             set { this.parentName = value; }
         }
+
+        #endregion
     }
 }

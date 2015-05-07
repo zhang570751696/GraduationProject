@@ -9,25 +9,38 @@ namespace MonitorSystemClient
     /// </summary>
     public partial class DelData : Window
     {
-
+        #region 变量
         /// <summary>
         /// XmlModel
         /// </summary>
         public XmlModel model;
 
+        /// <summary>
+        /// 父节点索引
+        /// </summary>
         private int index_parent;
 
+        #endregion
+
+        #region 构造方法
+        /// <summary>
+        /// 默认构造方法
+        /// </summary>
         public DelData()
         {
             index_parent = -1;
             InitializeComponent();
         }
 
+        #endregion
+
+        #region 方法实现
+
         /// <summary>
         /// 点击确认
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
+        /// <param name="sender">对象</param>
+        /// <param name="e">事件</param>
         private void ButtonOK_Click(object sender, RoutedEventArgs e)
         {
             int index = this.selectParent.SelectedIndex;
@@ -61,8 +74,8 @@ namespace MonitorSystemClient
         /// <summary>
         /// 点击取消
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
+        /// <param name="sender">对象</param>
+        /// <param name="e">事件</param>
         private void ButtonCancle_Click(object sender, RoutedEventArgs e)
         {
             this.Close();
@@ -71,8 +84,8 @@ namespace MonitorSystemClient
         /// <summary>
         /// 点击视频名时发生
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
+        /// <param name="sender">对象</param>
+        /// <param name="e">事件</param>
         private void DelName_GotFocus(object sender, RoutedEventArgs e)
         {
             int index = this.selectParent.SelectedIndex;
@@ -97,8 +110,8 @@ namespace MonitorSystemClient
         /// <summary>
         /// 获取名字
         /// </summary>
-        /// <param name="model"></param>
-        /// <returns></returns>
+        /// <param name="model">数据对象</param>
+        /// <returns>名称集合</returns>
         private List<string> GetName(IList<MonitorCameraTreeModel> model)
         {
             List<string> namelist = new List<string>();
@@ -109,5 +122,7 @@ namespace MonitorSystemClient
 
             return namelist;
         }
+
+        #endregion
     }
 }

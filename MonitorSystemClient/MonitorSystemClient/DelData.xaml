@@ -1,7 +1,7 @@
 ﻿<Window x:Class="MonitorSystemClient.DelData"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="删除数据" Height="183" Width="267.5">
+        Title="删除数据" Height="183" Width="267.5" WindowStyle="ToolWindow" ResizeMode="NoResize">
 	<Grid HorizontalAlignment="Left" Height="139" Margin="10,9.5,0,0" VerticalAlignment="Top" Width="247.5">
 		<Label Content="要删除的数据位于:" HorizontalAlignment="Left" Margin="5.5,4.5,0,0" VerticalAlignment="Top" Height="28.293" Width="109.993"/>
 		<ComboBox x:Name="selectParent" HorizontalAlignment="Left" Margin="123.493,6.833,0,0" VerticalAlignment="Top" Width="110">

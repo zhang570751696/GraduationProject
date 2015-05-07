@@ -181,13 +181,17 @@
     <Resource Include="Images\16_16\tick.png" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="1.wmv">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Resource Include="cascades.xml" />
-    <Resource Include="data.xml">
-      <SubType>Designer</SubType>
-    </Resource>
+    <Resource Include="data\cascades.xml" />
+    <Resource Include="data\data.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\16_16\add.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\16_16\cancle.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\Display\display.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
