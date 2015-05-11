@@ -253,7 +253,7 @@ namespace MonitorSystemClient
                                 {
                                     if (model.IsChecked)
                                     {
-                                        ((MainWindow)Application.Current.MainWindow).CloseVideoInvoke(model.VideoPath);
+                                        ((MainWindow)Application.Current.MainWindow).CloseVideoInvoke(model);
                                     }
                                 }
                                 selectModel.SetChildrenChecked(false);
@@ -267,7 +267,7 @@ namespace MonitorSystemClient
                             }
                             if (selectModel.Children == null || selectModel.Children.Count == 0)
                             {
-                                ((MainWindow)Application.Current.MainWindow).CloseVideoInvoke(selectModel.VideoPath);
+                                ((MainWindow)Application.Current.MainWindow).CloseVideoInvoke(selectModel);
                             }
                         }
                         e.Handled = true;

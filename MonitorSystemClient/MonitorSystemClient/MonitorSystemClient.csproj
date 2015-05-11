@@ -99,12 +99,14 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Bussiness\DMessagePie.cs" />
     <Compile Include="Bussiness\HeadDet.cs" />
     <Compile Include="Bussiness\OperaXml.cs" />
     <Compile Include="Bussiness\Video.cs" />
     <Compile Include="DelData.xaml.cs">
       <DependentUpon>DelData.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Model\MDeteInfo.cs" />
     <Compile Include="Model\XmlModel.cs" />
     <Compile Include="Bussiness\SelectPathControl.cs" />
     <Compile Include="TreeView.xaml.cs">

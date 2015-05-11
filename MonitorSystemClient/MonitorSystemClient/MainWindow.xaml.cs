@@ -4,7 +4,9 @@ using Emgu.CV.UI;
 using System;
 using System.ComponentModel;
 using System.Drawing;
+using System.Text;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Threading;
 
 namespace MonitorSystemClient
@@ -79,6 +81,7 @@ namespace MonitorSystemClient
         {
             if (!backgroundWorker.IsBusy)
             {
+                DMessagePie.OnDisplayEvent("打开视频:" + model.Name);
                 this.Lable_VideoPath.Content = model.VideoPath;
                 this.Lable_VideoName.Content = model.Name;
                 
@@ -117,15 +120,19 @@ namespace MonitorSystemClient
         ///  关闭委托
         /// </summary>
         /// <param name="videoPath">视频路径</param>
-        public void CloseVideoInvoke(string videoPath)
+        public void CloseVideoInvoke(MonitorCameraTreeModel model)
         {
-            if (video.VideoPath == videoPath && backgroundWorker.IsBusy)
+            if (video.VideoPath == model.VideoPath && backgroundWorker.IsBusy)
             {
+                DMessagePie.OnDisplayEvent("关闭视频：" + model.Name);
                 this.Lable_VideoName.Content = "未选择视频";
                 this.Lable_VideoPath.Content = "未选择视频";
                 this.Lable_PlayTime.Content = "00:00:00";
                 dTimer.Stop();
 
+                this.IsOpenChecked = false;
+                this.buttonChecked.Content = "开启检测";
+                this.deteInfo.Text = "未开启检测";
                 backgroundWorker.CancelAsync();
             }
             else
@@ -150,13 +157,15 @@ namespace MonitorSystemClient
                     Image<Bgr, Byte> frame = cap.QueryFrame();
                     if (frame != null)
                     {
-                        frame = frame.Resize(1000, 600, Emgu.CV.CvEnum.INTER.CV_INTER_LINEAR);
+                        frame = frame.Resize(600, 500, Emgu.CV.CvEnum.INTER.CV_INTER_LINEAR);
                         // 如果开启检测
                         if (IsOpenChecked)
                         {
-                            if ((count % 8) == 0)
+                            if ((count % 3) == 0)
                             {
-                                _videoBox1.Image = HeadDet.GetHead(frame);
+                                MDeteInfo model = HeadDet.GetHead(frame);
+                                _videoBox1.Image = model.Frame;
+                                backgroundWorker.ReportProgress(1, model.HeadCount);
                                 count = 1;
                             }
                             count++;
@@ -191,7 +200,7 @@ namespace MonitorSystemClient
             IntPtr image = CvInvoke.cvLoadImage(picPath, Emgu.CV.CvEnum.LOAD_IMAGE_TYPE.CV_LOAD_IMAGE_ANYCOLOR);
             Image<Bgr, Byte> dest = new Image<Bgr, byte>(CvInvoke.cvGetSize(image));
             CvInvoke.cvCopy(image, dest, IntPtr.Zero);
-            _videoBox1.Image = HeadDet.GetHead(dest); 
+            _videoBox1.Image = HeadDet.GetHead(dest).Frame;  
         }
 
         /// <summary>
@@ -207,6 +216,11 @@ namespace MonitorSystemClient
                     _video.CloseVideo();
                     _video = null;
                 }
+                if (!backgroundWorker.CancellationPending)
+                {
+                    backgroundWorker.CancelAsync();
+                }
+
             }
             catch (MyException ex)
             {
@@ -228,6 +242,9 @@ namespace MonitorSystemClient
                 video = new Video();
                 dTimer = new DispatcherTimer(); 
                 IsOpenChecked = false;
+                DMessagePie.DisplayEvent += new DMessagePie.DisplayMessageDelegate(this.DisplayMessage);
+                DMessagePie.OnDisplayEvent("打开视频监控系统");
+                
                 InitBackgroundworker();
             }
             catch (MyException ex)
@@ -258,6 +275,18 @@ namespace MonitorSystemClient
             backgroundWorker.RunWorkerCompleted += backgroundWorker_RunWorkerCompleted;
             backgroundWorker.WorkerReportsProgress = true;
             backgroundWorker.WorkerSupportsCancellation = true;
+            backgroundWorker.ProgressChanged += backgroundWorker_ProgressChanged;
+        }
+
+        /// <summary>
+        /// 报告进度
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void backgroundWorker_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            int message =(int)e.UserState;
+            ShowDeteInfo("检测出人头:" + message.ToString()); 
         }
 
         /// <summary>
@@ -339,7 +368,7 @@ namespace MonitorSystemClient
         /// <param name="e">e</param>
         private void OpenCheckedClick(object sender, RoutedEventArgs e)
         {
-            if (_videoBox1.Image == null)
+            if (_videoBox1.Image == null || !backgroundWorker.IsBusy)
             {
                 MessageBox.Show("请先打开视频");
                 return;
@@ -350,13 +379,71 @@ namespace MonitorSystemClient
             // 如果已经开始进行检测了
             if (IsOpenChecked)
             {
+                DMessagePie.OnDisplayEvent("打开视频检测");
                 this.buttonChecked.Content = "关闭检测";
             }
             else
             {
+                DMessagePie.OnDisplayEvent("关闭视频检测");
                 this.buttonChecked.Content = "开启检测";
             }
         }
+
+        /// <summary>
+        /// 现实消息
+        /// </summary>
+        /// <param name="message"></param>
+        private void DisplayMessage(string message)
+        {
+            string dateTime = DateTime.Now.ToString();
+            try
+            {
+                StringBuilder sb = new StringBuilder();
+                sb.AppendFormat("{0}", this.infoTxt.Text);
+
+                if (sb.Length < 250)
+                {
+                    sb.AppendFormat("\r\n{0}", dateTime + "," + message);
+                }
+                else
+                {
+                    sb = new StringBuilder(dateTime + "," + message);
+                }
+                this.infoTxt.Text = sb.ToString();
+            }
+            catch (Exception ex)
+            {
+                this.infoTxt.Text = dateTime + " 显示出现异常:" + ex.Message;
+            }
+        }
+
+        /// <summary>
+        /// 检测信息显示
+        /// </summary>
+        /// <param name="info">要显示的信息</param>
+        private void ShowDeteInfo(string info)
+        {
+            try
+            {
+                StringBuilder sb = new StringBuilder();
+                sb.AppendFormat("{0}", this.deteInfo.Text);
+
+                if (sb.Length < 80)
+                {
+                    sb.AppendFormat("\r\n{0}", info);
+                }
+                else
+                {
+                    sb = new StringBuilder(info);
+                }
+                this.deteInfo.Text = sb.ToString();
+            }
+            catch (Exception ex)
+            {
+                this.deteInfo.Text = " 显示出现异常:" + ex.Message;
+            }
+        }
+      
 
         #endregion
     }
