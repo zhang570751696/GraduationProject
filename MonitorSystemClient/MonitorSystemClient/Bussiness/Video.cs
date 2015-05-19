@@ -28,6 +28,11 @@ namespace MonitorSystemClient
         /// 是否关闭
         /// </summary>
         private bool isClose;
+
+        /// <summary>
+        /// 视频名称
+        /// </summary>
+        private string videoName;
         #endregion
 
         #region 公共变量
@@ -57,6 +62,12 @@ namespace MonitorSystemClient
             get { return this._capture; }
             set { this._capture = value; }
         }
+
+        public string VideoName
+        {
+            get { return this.videoName; }
+            set { this.videoName = value; }
+        }
         #endregion
 
         #region 构造方法
@@ -76,13 +87,14 @@ namespace MonitorSystemClient
         /// </summary>
         /// <param name="videoPath">视频路径</param>
         /// <returns>capture</returns>
-        public Capture GetCapture(string videoPath)
+        public Capture GetCapture(MonitorCameraTreeModel model)
         {
             try
             {
-                _capture = new Capture(videoPath);
+                _capture = new Capture(model.VideoPath);
                 _videoFps = (int)CvInvoke.cvGetCaptureProperty(_capture, Emgu.CV.CvEnum.CAP_PROP.CV_CAP_PROP_FPS);
-                this.videoPath = videoPath;
+                this.videoPath = model.VideoPath;
+                this.videoName = model.Name;
                 return _capture;
             }
             catch (Exception ex)
@@ -111,6 +123,22 @@ namespace MonitorSystemClient
             catch (Exception)
             {
                 throw new MyException("关闭视频失败");
+            }
+        }
+
+        /// <summary>
+        /// 播放视频
+        /// </summary>
+        /// <param name="filename"></param>
+        public void PlayVideo(string filename)
+        {
+            try
+            {
+               
+            }
+            catch (Exception ex)
+            {
+                string str = ex.Message;
             }
         }
 

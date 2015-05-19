@@ -26,6 +26,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>true</Prefer32Bit>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -72,6 +73,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>D:\Program Files\EmguCV\emgucv-windows-universal-cuda_2.4.10.1940\bin\Emgu.Util.dll</HintPath>
     </Reference>
+    <Reference Include="Mointor">
+      <HintPath>..\DLL\Mointor.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
@@ -99,6 +103,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Bussiness\ConvertImage.cs" />
     <Compile Include="Bussiness\DMessagePie.cs" />
     <Compile Include="Bussiness\HeadDet.cs" />
     <Compile Include="Bussiness\OperaXml.cs" />
@@ -106,6 +111,7 @@
     <Compile Include="DelData.xaml.cs">
       <DependentUpon>DelData.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ImportCCode.cs" />
     <Compile Include="Model\MDeteInfo.cs" />
     <Compile Include="Model\XmlModel.cs" />
     <Compile Include="Bussiness\SelectPathControl.cs" />

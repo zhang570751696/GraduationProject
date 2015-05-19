@@ -96,7 +96,7 @@ namespace MonitorSystemClient
                 //启动DispatcherTimer对象dTime
                 dTimer.Start();
 
-                backgroundWorker.RunWorkerAsync(model.VideoPath);
+                backgroundWorker.RunWorkerAsync(model);
             }
             else
             {
@@ -146,43 +146,70 @@ namespace MonitorSystemClient
         /// 播放视频
         /// </summary>
         /// <param name="videoPath">视频路径</param>
-        private void PlayVideo(string videoPath)
+        private void PlayVideo(MonitorCameraTreeModel model)
         {
             try
             {
-                Capture cap = video.GetCapture(videoPath);
-                int count = 1;
-                while (!backgroundWorker.CancellationPending)
+                Mointor.CMonitor monitor = new Mointor.CMonitor();
+
+                 unsafe
                 {
-                    Image<Bgr, Byte> frame = cap.QueryFrame();
-                    if (frame != null)
+                    string fileName = model.VideoPath;
+                    fixed (char* p = &(fileName.ToCharArray()[0]))
                     {
-                        frame = frame.Resize(600, 500, Emgu.CV.CvEnum.INTER.CV_INTER_LINEAR);
-                        // 如果开启检测
-                        if (IsOpenChecked)
+                        monitor.InitVideo(p);
+                        IntPtr ptr = new IntPtr();
+                        while (true)
                         {
-                            if ((count % 3) == 0)
+                            try
                             {
-                                MDeteInfo model = HeadDet.GetHead(frame);
-                                _videoBox1.Image = model.Frame;
-                                backgroundWorker.ReportProgress(1, model.HeadCount);
-                                count = 1;
+                                monitor.GetCurrentFrame();
+                                ptr = (IntPtr)monitor.GetDetectFeame();
+                                Image<Bgr, Byte> image = ConvertImage.IplImagePointerToEmgucvImage<Bgr, Byte>(ptr);
+                                _videoBox1.Image = image;
                             }
-                            count++;
+                            catch (Exception ex)
+                            {
+                                //表示视频已经播放完毕
+                                break;
+                            }
                         }
-                        else 
-                        {
-                            //为使播放顺畅，添加以下延时
-                            System.Threading.Thread.Sleep((int)(1000.0 / video.VideoFps - 5));
-                            _videoBox1.Image = frame;
-                        }
-                    }
-                    else
-                    {
-                        break;
                     }
                 }
+                //Capture cap = video.GetCapture(model);
+                //int count = 1;
+                //while (!backgroundWorker.CancellationPending)
+                //{
+                //    Image<Bgr, Byte> frame = cap.QueryFrame();
+                //    if (frame != null)
+                //    {
+                //        frame = frame.Resize(600, 500, Emgu.CV.CvEnum.INTER.CV_INTER_LINEAR);
+                //        // 如果开启检测
+                //        if (IsOpenChecked)
+                //        {
+                //            if ((count % 3) == 0)
+                //            {
+                //                MDeteInfo deteModel = HeadDet.GetHead(frame);
+                //                _videoBox1.Image = deteModel.Frame;
+                //                backgroundWorker.ReportProgress(1, deteModel.HeadCount);
+                //                count = 1;
+                //            }
+                //            count++;
+                //        }
+                //        else
+                //        {
+                //            //为使播放顺畅，添加以下延时
+                //            System.Threading.Thread.Sleep((int)(1000.0 / video.VideoFps - 5));
+                //            _videoBox1.Image = frame;
+                //        }
+                //    }
+                //    else
+                //    {
+                //        break;
+                //    }
+                //}
                 this.DisplayPic(this.picPath);
+                //monitor.Dispose();
             }
             catch (Exception ex)
             {
@@ -296,7 +323,14 @@ namespace MonitorSystemClient
         /// <param name="e">事件</param>
         private void backgroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            CloseVideo(video);
+            //CloseVideo(video);
+
+            MonitorCameraTreeModel model = new MonitorCameraTreeModel
+            {
+                VideoPath = video.VideoPath,
+                Name = video.VideoName
+            };
+            this.CloseVideoInvoke(model);
         }
 
         /// <summary>
@@ -309,14 +343,16 @@ namespace MonitorSystemClient
             try
             {
                 BackgroundWorker worker = sender as BackgroundWorker;
-                string path = e.Argument.ToString();
+               // string path = e.Argument.ToString();
+                MonitorCameraTreeModel model = e.Argument as MonitorCameraTreeModel;
+                string path = model.VideoPath;
                 if (path.ToUpper().Contains("JPG") || path.ToUpper().Contains("JPEG"))
                 {
                     this.DisplayPic(path);
                 }
                 else
                 {
-                    this.PlayVideo(path);
+                    this.PlayVideo(model);
                 }
             }
             catch (MyException ex)
