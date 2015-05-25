@@ -6,6 +6,8 @@
 #include "SystemMonitor.h"
 #include "SystemMonitorDlg.h"
 #include "afxdialogex.h"
+#include "AddVideo.h"
+#include "DeleteVideo.h"
 
 
 #ifdef _DEBUG
@@ -68,6 +70,9 @@ BEGIN_MESSAGE_MAP(CSystemMonitorDlg, CDialogEx)
 	ON_NOTIFY(NM_CLICK, IDC_TREE_SOURCE, &CSystemMonitorDlg::OnNMClickTreeSource)
 	ON_WM_TIMER()
 	ON_BN_CLICKED(IDC_BUTTON_OPEN, &CSystemMonitorDlg::OnBnClickedButton1)
+	ON_BN_CLICKED(IDC_BUTTON_ADD, &CSystemMonitorDlg::OnBnClickedButtonAdd)
+	ON_BN_CLICKED(IDC_BUTTON_DELETE, &CSystemMonitorDlg::OnBnClickedButtonDelete)
+	ON_WM_ERASEBKGND()
 END_MESSAGE_MAP()
 
 
@@ -159,10 +164,25 @@ void CSystemMonitorDlg::OnPaint()
 		CDC *pDC = GetDlgItem(IDC_STATIC_PIC)->GetDC();
 		HDC hDC = pDC->GetSafeHdc();
 		GetDlgItem(IDC_STATIC_PIC)->GetClientRect(&rect);
+
+		// 采用双缓冲作图
+		CDC dcMem;  // 用于缓冲作图的内存DC
+		CBitmap bmp; //内存中承载临时图象的位图
+		dcMem.CreateCompatibleDC(NULL);  //依附窗口DC创建兼容内存DC
+		bmp.CreateCompatibleBitmap(pDC, rect.Width(), rect.Height());//创建兼容位图
+		dcMem.SelectObject(&bmp);//将位图选择进内存DC
+		dcMem.FillSolidRect(rect, pDC->GetBkColor());//按原来背景填充客户区，不然会是黑色
+		dcMem.SelectStockObject(NULL_BRUSH);
+
 		CvvImage cimg;
 		cimg.CopyOf(m_img);
-		cimg.DrawToHDC(hDC, &rect);
+		cimg.DrawToHDC(dcMem, &rect);
+
+		pDC->BitBlt(0, 0, rect.Width(), rect.Height(), &dcMem, 0, 0, SRCCOPY);//将内存DC上的图象拷贝到前台
+		dcMem.DeleteDC();                                       //删除DC
+		bmp.DeleteObject();                                        //删除位图
 		ReleaseDC(pDC);
+
 		CDialogEx::OnPaint();
 	}
 }
@@ -174,13 +194,15 @@ HCURSOR CSystemMonitorDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
-
-
 void CSystemMonitorDlg::OnClose()
 {
-	delete video;
-	cvReleaseImage(&m_img);
+	if (video->GetVideoState())
+	{
+		video->CloseVideo();
+	}
 
+	//delete video;
+	//cvReleaseImage(&m_img);
 
 	CDialogEx::OnClose();
 }
@@ -189,19 +211,45 @@ void CSystemMonitorDlg::OnClose()
 // 初始化树形控件
 void CSystemMonitorDlg::InitDataSource()
 {
+	//　先进行清空
+	m_treeContrl.DeleteAllItems();
+	model.clear();
+
+	vector<CSourceModel> loaclmodel;
+	vector<CSourceModel> intermodel;
+
 	HTREEITEM hImgNodeGlobal = m_treeContrl.InsertItem(_T("视频源"), 0, 0);
 
 	HTREEITEM hImgNodeDom = m_treeContrl.InsertItem(_T("本地视频"), 0, 0, hImgNodeGlobal, TVI_LAST);
 
 	COperateData data;
-	model = data.GetData();
-	for (int i = 0; i < (int)model.size(); i++)
+	//loaclmodel = data.GetData();
+	loaclmodel = data.GetData(0);
+	if ((int)loaclmodel.size() > 0)
 	{
-		HTREEITEM hImgNodeData = m_treeContrl.InsertItem(model[i].name, 0, 0, hImgNodeDom, TVI_LAST);
+		for (int i = 0; i < (int)loaclmodel.size(); i++)
+		{
+			if (loaclmodel[i].name != _T(""))
+			{
+				HTREEITEM hImgNodeData = m_treeContrl.InsertItem(loaclmodel[i].name, 0, 0, hImgNodeDom, TVI_LAST);
+				model.push_back(loaclmodel[i]);
+			}
+		}
 	}
-	//m_treeContrl.InsertItem(_T("本地视频1"), 0, 0, hImgNodeDom, TVI_LAST);
 
 	HTREEITEM hImgNodeDem = m_treeContrl.InsertItem(_T("网络视频"), 0, 0, hImgNodeGlobal, TVI_LAST);
+	intermodel = data.GetData(1);
+	if ((int)intermodel.size()>0)
+	{
+		for (int i = 0; i < (int)intermodel.size(); i++)
+		{
+			if (intermodel[i].name != _T(""))
+			{
+				HTREEITEM hImgNodeData = m_treeContrl.InsertItem(intermodel[i].name, 0, 0, hImgNodeDem, TVI_LAST);
+				model.push_back(intermodel[i]);
+			}
+		}
+	}
 }
 
 
@@ -322,7 +370,7 @@ void CSystemMonitorDlg::PlayVideo(CString filename)
 			video->InitVideo(tempchar);
 			DisplayVideoInfo(model[i].name, model[i].videopath);
 			DisplayOperateInfo(_T("你打开了") + model[i].name);
-			SetTimer(1, 20, NULL);
+			SetTimer(1, 150, NULL);
 			break;
 		}
 	}
@@ -358,16 +406,24 @@ void CSystemMonitorDlg::DisplayOperateInfo(CString message)
 // 开启检测
 void CSystemMonitorDlg::OnBnClickedButton1()
 {
-	isOpenDetect = !isOpenDetect;
-	if (isOpenDetect)
+	bool videostate = video->GetVideoState();
+	if (videostate)
 	{
-		SetDlgItemText(IDC_BUTTON_OPEN, _T("关闭检测"));
-		DisplayOperateInfo(_T("你开启了检测功能"));
+		isOpenDetect = !isOpenDetect;
+		if (isOpenDetect)
+		{
+			SetDlgItemText(IDC_BUTTON_OPEN, _T("关闭检测"));
+			DisplayOperateInfo(_T("你开启了检测功能"));
+		}
+		else
+		{
+			SetDlgItemText(IDC_BUTTON_OPEN, _T("开启检测"));
+			DisplayOperateInfo(_T("你关闭了检测功能"));
+		}
 	}
 	else
 	{
-		SetDlgItemText(IDC_BUTTON_OPEN, _T("开启检测"));
-		DisplayOperateInfo(_T("你关闭了检测功能"));
+		AfxMessageBox(_T("请先播放视频"));
 	}
 }
 
@@ -381,4 +437,28 @@ void CSystemMonitorDlg::DisplayDetectInfo(int doorlen, int targetcount, int outC
 	SetDlgItemText(IDC_STATIC_DOOR, temp);
 	temp.Format(_T("%d"), targetcount);
 	SetDlgItemText(IDC_STATIC_TARGET, temp);
+}
+
+// 添加视频源
+void CSystemMonitorDlg::OnBnClickedButtonAdd()
+{
+	//AfxMessageBox(_T("等待实现"));
+	CAddVideo addvideo;
+	addvideo.DoModal();
+	InitDataSource();
+}
+
+// 删除视频源
+void CSystemMonitorDlg::OnBnClickedButtonDelete()
+{
+	//AfxMessageBox(_T("等待实现"));
+	CDeleteVideo deleteVideo;
+	deleteVideo.DoModal();
+	InitDataSource();
+}
+
+
+BOOL CSystemMonitorDlg::OnEraseBkgnd(CDC* pDC)
+{
+	return CDialogEx::OnEraseBkgnd(pDC);
 }

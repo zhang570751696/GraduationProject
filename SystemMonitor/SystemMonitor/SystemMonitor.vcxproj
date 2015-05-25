@@ -51,7 +51,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -103,11 +103,14 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AddVideo.h" />
     <ClInclude Include="CvvImage.h" />
+    <ClInclude Include="DeleteVideo.h" />
     <ClInclude Include="DetectRegion.h" />
     <ClInclude Include="DoorOpenLen.h" />
     <ClInclude Include="HeadDetection.h" />
     <ClInclude Include="IsInRegion.h" />
+    <ClInclude Include="MyEditBrowseCtrl.h" />
     <ClInclude Include="OperateData.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="SourceModel.h" />
@@ -116,15 +119,20 @@
     <ClInclude Include="SystemMonitorDlg.h" />
     <ClInclude Include="Target.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="tinystr.h" />
+    <ClInclude Include="tinyxml.h" />
     <ClInclude Include="Tracker.h" />
     <ClInclude Include="Video.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AddVideo.cpp" />
     <ClCompile Include="CvvImage.cpp" />
+    <ClCompile Include="DeleteVideo.cpp" />
     <ClCompile Include="DetectRegion.cpp" />
     <ClCompile Include="DoorOpenLen.cpp" />
     <ClCompile Include="HeadDetection.cpp" />
     <ClCompile Include="IsInRegion.cpp" />
+    <ClCompile Include="MyEditBrowseCtrl.cpp" />
     <ClCompile Include="OperateData.cpp" />
     <ClCompile Include="SourceModel.cpp" />
     <ClCompile Include="stdafx.cpp">
@@ -134,6 +142,10 @@
     <ClCompile Include="SystemMonitor.cpp" />
     <ClCompile Include="SystemMonitorDlg.cpp" />
     <ClCompile Include="Target.cpp" />
+    <ClCompile Include="tinystr.cpp" />
+    <ClCompile Include="tinyxml.cpp" />
+    <ClCompile Include="tinyxmlerror.cpp" />
+    <ClCompile Include="tinyxmlparser.cpp" />
     <ClCompile Include="Tracker.cpp" />
     <ClCompile Include="Video.cpp" />
   </ItemGroup>
@@ -145,6 +157,9 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\SystemMonitor.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="C:\data\LocalData.xml" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

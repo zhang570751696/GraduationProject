@@ -63,6 +63,21 @@
     <ClInclude Include="OperateData.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="AddVideo.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="DeleteVideo.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="tinystr.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="tinyxml.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="MyEditBrowseCtrl.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="SystemMonitor.cpp">
@@ -104,6 +119,27 @@
     <ClCompile Include="OperateData.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="AddVideo.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="DeleteVideo.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="tinystr.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="tinyxml.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="tinyxmlerror.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="tinyxmlparser.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="MyEditBrowseCtrl.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="SystemMonitor.rc">
@@ -119,5 +155,8 @@
     <Image Include="res\SystemMonitor.ico">
       <Filter>资源文件</Filter>
     </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="C:\data\LocalData.xml" />
   </ItemGroup>
 </Project>

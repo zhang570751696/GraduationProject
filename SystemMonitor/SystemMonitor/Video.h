@@ -30,8 +30,10 @@ public:
 	int GetOutCount();
 	int GetTargetCount();
 	int GetDoorLen();
+	bool GetVideoState();
 
 private:// ¿ªÆô¼ì²â
+
 	Tracker *head;
 	DetectRegion *region;
 	HeadDetection *headDetects;

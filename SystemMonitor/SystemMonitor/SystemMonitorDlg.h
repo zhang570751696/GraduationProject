@@ -34,7 +34,9 @@ protected:
 	char* startImagePath;
 	// 树形控件
 	CTreeCtrl m_treeContrl;
+	// 所有的视频信息
 	vector<CSourceModel> model;
+
 	void ConsistentChildCheck(HTREEITEM hTreeItem);
 	void ConsistentParentCheck(HTREEITEM hTreeItem);
 
@@ -52,6 +54,10 @@ protected:
 	afx_msg void OnClose();
 	afx_msg void OnNMClickTreeSource(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnTimer(UINT_PTR nIDEvent);  //定时器
+	afx_msg void OnBnClickedButton1();        // 开启检测
+	afx_msg void OnBnClickedButtonAdd();      // 添加视频源
+	afx_msg void OnBnClickedButtonDelete();   // 删除视频源
+	afx_msg BOOL OnEraseBkgnd(CDC* pDC);
 
 	// 播放视频
 	void PlayVideo(CString filename);
@@ -70,6 +76,4 @@ protected:
 
 	// 显示检测信息
 	void DisplayDetectInfo(int doorlen, int targetcount, int outCount);
-public:
-	afx_msg void OnBnClickedButton1();
 };

@@ -139,8 +139,11 @@ void CVideo::InitDeteInfo()
 
 void CVideo::CloseVideo()
 {
-	cvReleaseCapture(&capture);
-	videostate = false;
+	if (videostate)
+	{
+		cvReleaseCapture(&capture);
+		videostate = false;
+	}
 }
 
 int CVideo::GetOutCount()
@@ -156,4 +159,9 @@ int CVideo::GetTargetCount()
 int CVideo::GetDoorLen()
 {
 	return door->GetOpenLen();
+}
+
+bool CVideo::GetVideoState()
+{
+	return videostate;
 }
