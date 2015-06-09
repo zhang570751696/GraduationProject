@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "HeadDetection.h"
 #include <fstream>
 #include <iostream>
@@ -6,23 +5,24 @@ using namespace std;
 
 HeadDetection::HeadDetection(void)
 {
+	m_roiRect = new Rect();
 #ifdef _INSIDE_
-	m_roiRect.x = 58;
-	m_roiRect.y = 134;
-	m_roiRect.width = 534;
-	m_roiRect.height = 430;
+	m_roiRect->x = 58;
+	m_roiRect->y = 134;
+	m_roiRect->width = 534;
+	m_roiRect->height = 430;
 #else
-	m_roiRect.x = 144;
-	m_roiRect.y = 206;
-	m_roiRect.width = 406;
-	m_roiRect.height = 360;
+	m_roiRect->x = 144;
+	m_roiRect->y = 206;
+	m_roiRect->width = 406;
+	m_roiRect->height = 360;
 #endif
 
-	m_winSize = cvSize(64, 64);
-	m_blockSize = cvSize(16, 16);
-	m_blockStride = cvSize(8, 8);
-	m_winStride = cvSize(8, 8);
-	m_cellSize = cvSize(8, 8);
+	m_winSize = new CvSize(cvSize(64, 64));
+	m_blockSize = new CvSize(cvSize(16, 16));
+	m_blockStride = new CvSize(cvSize(8, 8));
+	m_winStride = new CvSize(cvSize(8, 8));
+	m_cellSize = new CvSize(cvSize(8, 8));
 	m_nbins = 9;
 }
 
@@ -170,13 +170,16 @@ float HeadDetection::Intersection(CvRect rect1, CvRect rect2)
 
 void HeadDetection::detectSingle(cv::Mat srcFrame, std::vector<cv::Rect> &vecRects)
 {
-	cv::Mat tempMat = srcFrame.clone();
+
+	Mat *tempMat = new Mat(srcFrame, *m_roiRect);
+
+	/*cv::Mat tempMat = srcFrame.clone();*/
 
 	m_heads.clear();
-	tempMat = tempMat(m_roiRect);
+	/*tempMat = tempMat(m_roiRect);*/
 
 	found.clear();
-	hog.detect(tempMat, found, 0, m_winStride, cvSize(0,0));
+	hog->detect(*tempMat, found, 0, *m_winStride, cvSize(0,0));
 	if (found.size() > 0)
 	{
 		cv::Rect tempRect;
@@ -185,10 +188,10 @@ void HeadDetection::detectSingle(cv::Mat srcFrame, std::vector<cv::Rect> &vecRec
 		for (int i = 0; i < found.size(); i++)
 		{
 			pushFlag = true;
-			tempRect.x = found[i].x + m_roiRect.x;
-			tempRect.y = found[i].y + m_roiRect.y;
-			tempRect.width = m_winSize.width;
-			tempRect.height = m_winSize.height;
+			tempRect.x = found[i].x + m_roiRect->x;
+			tempRect.y = found[i].y + m_roiRect->y;
+			tempRect.width = m_winSize->width;
+			tempRect.height = m_winSize->height;
 
 			for (int rectNum = 0; rectNum < vecRects.size(); rectNum++)
 			{
@@ -223,12 +226,12 @@ void HeadDetection::init(void)
 	}
 	fileIn.close();
 
-	hog.winSize = m_winSize;
-	hog.blockSize = m_blockSize;
-	hog.blockStride = m_blockStride;
-	hog.cellSize = m_cellSize;
-	hog.nbins = m_nbins;
-	hog.setSVMDetector(detector);
+	hog->winSize = *m_winSize;
+	hog->blockSize = *m_blockSize;
+	hog->blockStride = *m_blockStride;
+	hog->cellSize = *m_cellSize;
+	hog->nbins = m_nbins;
+	hog->setSVMDetector(detector);
 }
 
 void HeadDetection::draw(Mat& frame)

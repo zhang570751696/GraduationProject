@@ -8,10 +8,12 @@ namespace Mointor
 {
 	CMonitor::CMonitor()
 	{
+		video = new CVideo();
 	}
 
 	CMonitor::~CMonitor()
 	{
+		delete video;
 	}
 
 	void CMonitor::InitVideo(wchar_t *filename)

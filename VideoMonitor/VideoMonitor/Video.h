@@ -7,11 +7,11 @@
 #include <time.h>
 #include <opencv2\opencv.hpp>
 
-#include "Tracker.h"
-#include "HeadDetection.h"
-#include "DetectRegion.h"
-#include "IsInRegion.h"
-#include "DoorOpenLen.h"
+//#include "Tracker.h"
+//#include "HeadDetection.h"
+//#include "DetectRegion.h"
+//#include "IsInRegion.h"
+//#include "DoorOpenLen.h"
 
 using namespace std;
 using namespace cv;
@@ -28,23 +28,23 @@ public:
 	IplImage* GetCurrentFrame();
 	IplImage* GetDetectFrame();
 	int GetOutCount();
-	int GetTargetCount();
-	int GetDoorLen();
+	/*int GetTargetCount();
+	int GetDoorLen();*/
 	bool GetVideoState();
 
 private:// ¿ªÆô¼ì²â
 
-	Tracker *head;
-	DetectRegion *region;
-	HeadDetection *headDetects;
-	DoorOpenLen *door;
+	//Tracker *head;
+	/*DetectRegion *region;*/
+	//HeadDetection *headDetects;
+	/*DoorOpenLen *door;*/
 	bool isInit;
 	int regions;
 	int countOut;
 	unsigned int frames;
 	int detectionCounts;
-	stringstream text;
-	vector<Rect> heads;
+	/*stringstream text;
+	vector<Rect> heads;*/
 	bool videostate;
 
 private :

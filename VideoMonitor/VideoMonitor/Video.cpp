@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "Video.h"
 
 
@@ -76,26 +75,25 @@ IplImage* CVideo::GetDetectFrame()
 {
 	if (videostate)
 	{
-
-		Mat currFrame(srcImage, 1);
+		Mat *currFrame = new Mat(srcImage, 1);
 		if (!isInit)
 		{
 			InitDeteInfo();
 		}
 
 		//检测
-		headDetects->detectSingle(currFrame, heads);
-		headDetects->draw(currFrame);
+	/*	headDetects->detectSingle(*currFrame, heads);
+		headDetects->draw(*currFrame);*/
 
-		//跟踪
-		head->track(currFrame, heads);
-		head->draw(currFrame);
+		////跟踪
+		//head->track(currFrame, heads);
+		//head->draw(currFrame);
 
-		//是否出（进）门
-		regions = region->detect(currFrame);
+		////是否出（进）门
+		//regions = region->detect(currFrame);
 
-		if (regions)
-			countOut += head->isInRegion(currFrame);
+		//if (regions)
+		//	countOut += head->isInRegion(currFrame);
 
 		/*text << "Out: " << countOut;
 		putText(currFrame, text.str(), Point(0, 490),
@@ -103,7 +101,7 @@ IplImage* CVideo::GetDetectFrame()
 		text.str("");*/
 
 		//大门开启宽度
-		door->CalOpenLen(currFrame);
+	/*	door->CalOpenLen(currFrame);*/
 
 		//显示目标数目
 	/*	text << "Target: " << head->getTargets();
@@ -111,12 +109,13 @@ IplImage* CVideo::GetDetectFrame()
 			FONT_HERSHEY_SIMPLEX, 1, CV_RGB(0, 255, 0), 2);
 		text.str("");*/
 
-		++detectionCounts;
+		/*++detectionCounts;
 		heads.clear();
-		++frames;
+		++frames;*/
 
-		img = IplImage(currFrame); // 添加数据头
+		img = IplImage(*currFrame); // 添加数据头
 		deteImage = &img;
+		//deteImage = srcImage;
 	}
 	//deteImage = &IplImage(currFrame);
 	return deteImage;
@@ -124,12 +123,12 @@ IplImage* CVideo::GetDetectFrame()
 
 void CVideo::InitDeteInfo()
 {
-	head = new Tracker();
-	region = new DetectRegion();
-	headDetects = new HeadDetection();
-	door = new DoorOpenLen();
-	headDetects->init();
-	region->init();
+	/*head = new Tracker();
+	region = new DetectRegion();*/
+	/*headDetects = new HeadDetection();*/
+	/*door = new DoorOpenLen();*/
+	/*headDetects->init();*/
+	/*region->init();*/
 	regions = 0;
 	countOut = 0;
 	frames = 1;
@@ -151,15 +150,15 @@ int CVideo::GetOutCount()
 	return countOut;
 }
 
-int CVideo::GetTargetCount()
-{
-	return head->getTargets();
-}
+//int CVideo::GetTargetCount()
+//{
+//	return head->getTargets();
+//}
 
-int CVideo::GetDoorLen()
-{
-	return door->GetOpenLen();
-}
+//int CVideo::GetDoorLen()
+//{
+//	return door->GetOpenLen();
+//}
 
 bool CVideo::GetVideoState()
 {

@@ -271,7 +271,6 @@ void CSystemMonitorDlg::OnNMClickTreeSource(NMHDR *pNMHDR, LRESULT *pResult)
 		if (bCheck)
 		{
 			PlayVideo(m_treeContrl.GetItemText(oSelectItem));
-			//AfxMessageBox(m_treeContrl.GetItemText(oSelectItem));
 		}
 		else
 		{
@@ -351,6 +350,10 @@ void CSystemMonitorDlg::OnTimer(UINT_PTR nIDEvent)
 			m_img = tep;
 		}
 		Invalidate(FALSE);
+	}
+	else
+	{
+		CloseVideo();
 	}
 
 	CDialogEx::OnTimer(nIDEvent);
