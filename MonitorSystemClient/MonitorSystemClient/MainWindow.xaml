@@ -20,21 +20,21 @@
 							<Label x:Name="Lable_PlayTime" Content="00:00:00" HorizontalAlignment="Left" Margin="70.333,61.48,0,0" VerticalAlignment="Top" Width="84.957"/>
 						</Grid>
 					</GroupBox>
-					<GroupBox Header="操作信息" HorizontalAlignment="Left" Margin="0,116,0,135" Width="191.833">
-						<Grid HorizontalAlignment="Right" Margin="0,10,-2,-2.24" Width="181.833" Height="422.5" VerticalAlignment="Top">
+					<GroupBox Header="检测信息" HorizontalAlignment="Left" Margin="0,114.332,0,0" VerticalAlignment="Top" Height="120.168" Width="191.833">
+						<Grid HorizontalAlignment="Left" Height="100.668" Margin="0,0,-2,-2.74" VerticalAlignment="Top" Width="181.833">
+							<Label HorizontalAlignment="Left" VerticalAlignment="Top" Height="100.668" Width="181.833">
+								<TextBlock x:Name="deteInfo" TextWrapping="Wrap" Height="90.668" Width="171.833"><Run Language="zh-cn" Text="未开启视频检测，请先开启检测！"/></TextBlock>
+							</Label>
+						</Grid>
+					</GroupBox>
+					<GroupBox Header="操作信息" HorizontalAlignment="Left" Margin="0,246,0,5" Width="191.833">
+						<Grid HorizontalAlignment="Right" Margin="0,10,-2,-12.24" Width="181.833" Height="297.5" VerticalAlignment="Top">
 							<Grid.RowDefinitions>
 								<RowDefinition/>
 								<RowDefinition Height="0*"/>
 							</Grid.RowDefinitions>
-                            <Label Margin="0,0,-0.167,140.334">
-                                <TextBlock x:Name="infoTxt" TextWrapping="Wrap" Width="172" Text="欢迎使用视频监控系统" Height="272.166"></TextBlock>
-                            </Label>
-                        </Grid>
-					</GroupBox>
-					<GroupBox Header="检测信息" HorizontalAlignment="Left" Margin="0,448.332,0,0" VerticalAlignment="Top" Height="120.168" Width="191.833">
-						<Grid HorizontalAlignment="Left" Height="100.668" Margin="0,0,-2,-2.74" VerticalAlignment="Top" Width="181.833">
-							<Label HorizontalAlignment="Left" VerticalAlignment="Top" Height="100.668" Width="181.833">
-								<TextBlock x:Name="deteInfo" TextWrapping="Wrap" Height="90.668" Width="171.833"><Run Language="zh-cn" Text="未开启视频检测，请先开启检测！"/></TextBlock>
+							<Label Margin="0,0,-0.167,140.334">
+								<TextBlock x:Name="infoTxt" TextWrapping="Wrap" Width="172" Text="欢迎使用视频监控系统" Height="272.166"/>
 							</Label>
 						</Grid>
 					</GroupBox>
@@ -52,7 +52,18 @@
 					</my:TreeView.RenderTransform>
 				</my:TreeView>
 			</Border>
-			<Button x:Name="buttonChecked" Content="开启检测" Height="34" VerticalAlignment="Top" Width="75" Margin="0,517.5,0,0" Click="OpenCheckedClick"/>
+			<DockPanel Height="83.5" LastChildFill="False" VerticalAlignment="Top" Width="585.334" Margin="0,493.333,0,0">
+				<Border BorderThickness="1" HorizontalAlignment="Left" Height="74.5" VerticalAlignment="Top" Width="590.5">
+					<Grid>
+						<Button x:Name="buttonChecked" Content="开启检测" Height="34" VerticalAlignment="Top" Margin="369.333,17.5,144.166,0" Click="OpenCheckedClick"/>
+						<Label Content="检测方法选择" HorizontalAlignment="Left" Margin="13,24,0,0" VerticalAlignment="Top"/>
+                        <ComboBox x:Name="selectFun" HorizontalAlignment="Left" Margin="102,24,0,0" VerticalAlignment="Top" Width="174">
+                            <ComboBoxItem Content="AdaBoost人头检测算法" ToolTip="使用AdaBoost人头检测算法进行检测" Selected="ComboBoxItem_Selected"/>
+                            <ComboBoxItem Content="SVM人头检测算法" ToolTip="使用SVM人头检测算法进行检测" Selected="ComboBoxItem_Selected"/>
+						</ComboBox>
+					</Grid>
+				</Border>
+			</DockPanel>
 		</DockPanel>
 		<WindowsFormsHost x:Name="picHostOne" HorizontalAlignment="Left" Height="478.627" Margin="234,10,0,0" VerticalAlignment="Top" Width="590.085" >
             <WinFormUI:ImageBox x:Name="cam_ibox_One" FunctionalMode="Minimum" MouseDoubleClick="BoxOneDoubleClick"/>

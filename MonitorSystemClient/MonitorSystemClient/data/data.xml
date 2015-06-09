@@ -11,6 +11,11 @@
         <childName>测试视频</childName>
         <videopath>D:\300_11_48-00_13_15.avi</videopath>
       </children>
+      <children>
+        <childId>0-2</childId>
+        <childName>本地视频2</childName>
+        <videopath>D:\colorvideo0508paidui_clip.avi</videopath>
+      </children>
     </child>
   </video>
   <video type="网络视频" id="1">

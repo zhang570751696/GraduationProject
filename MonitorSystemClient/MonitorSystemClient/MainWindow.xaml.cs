@@ -58,6 +58,11 @@ namespace MonitorSystemClient
         /// </summary>
         private string picPath = @"../../Images/Display/display.png";
 
+        /// <summary>
+        /// 算法类型
+        /// </summary>
+        private int type;
+
         #endregion
 
         #region 构造方法
@@ -84,7 +89,7 @@ namespace MonitorSystemClient
                 DMessagePie.OnDisplayEvent("打开视频:" + model.Name);
                 this.Lable_VideoPath.Content = model.VideoPath;
                 this.Lable_VideoName.Content = model.Name;
-                
+
                 //定时器使用委托
                 dTimer.Tick += new EventHandler(dTimer_Tick);
 
@@ -92,7 +97,7 @@ namespace MonitorSystemClient
                 dTimer.Interval = new TimeSpan(0, 0, 1);
 
                 startTime = DateTime.Now;
-                
+
                 //启动DispatcherTimer对象dTime
                 dTimer.Start();
 
@@ -150,66 +155,40 @@ namespace MonitorSystemClient
         {
             try
             {
-                Mointor.CMonitor monitor = new Mointor.CMonitor();
-
-                 unsafe
+                Capture cap = video.GetCapture(model);
+                int count = 1;
+                while (!backgroundWorker.CancellationPending)
                 {
-                    string fileName = model.VideoPath;
-                    fixed (char* p = &(fileName.ToCharArray()[0]))
+                    Image<Bgr, Byte> frame = cap.QueryFrame();
+                    if (frame != null)
                     {
-                        monitor.InitVideo(p);
-                        IntPtr ptr = new IntPtr();
-                        while (true)
+                        frame = frame.Resize(600, 500, Emgu.CV.CvEnum.INTER.CV_INTER_LINEAR);
+                        // 如果开启检测
+                        if (IsOpenChecked)
                         {
-                            try
+                            if ((count % 3) == 0)
                             {
-                                monitor.GetCurrentFrame();
-                                ptr = (IntPtr)monitor.GetDetectFeame();
-                                Image<Bgr, Byte> image = ConvertImage.IplImagePointerToEmgucvImage<Bgr, Byte>(ptr);
-                                _videoBox1.Image = image;
+                                MDeteInfo deteModel = HeadDet.GetHead(frame, type);
+                                HeadDet.StroageImage(frame); ;
+                                _videoBox1.Image = deteModel.Frame;
+                                backgroundWorker.ReportProgress(1, deteModel.HeadCount);
+                                count = 1;
                             }
-                            catch (Exception ex)
-                            {
-                                //表示视频已经播放完毕
-                                break;
-                            }
+                            count++;
+                        }
+                        else
+                        {
+                            //为使播放顺畅，添加以下延时
+                            System.Threading.Thread.Sleep((int)(1000.0 / video.VideoFps - 5));
+                            _videoBox1.Image = frame;
                         }
                     }
+                    else
+                    {
+                        break;
+                    }
                 }
-                //Capture cap = video.GetCapture(model);
-                //int count = 1;
-                //while (!backgroundWorker.CancellationPending)
-                //{
-                //    Image<Bgr, Byte> frame = cap.QueryFrame();
-                //    if (frame != null)
-                //    {
-                //        frame = frame.Resize(600, 500, Emgu.CV.CvEnum.INTER.CV_INTER_LINEAR);
-                //        // 如果开启检测
-                //        if (IsOpenChecked)
-                //        {
-                //            if ((count % 3) == 0)
-                //            {
-                //                MDeteInfo deteModel = HeadDet.GetHead(frame);
-                //                _videoBox1.Image = deteModel.Frame;
-                //                backgroundWorker.ReportProgress(1, deteModel.HeadCount);
-                //                count = 1;
-                //            }
-                //            count++;
-                //        }
-                //        else
-                //        {
-                //            //为使播放顺畅，添加以下延时
-                //            System.Threading.Thread.Sleep((int)(1000.0 / video.VideoFps - 5));
-                //            _videoBox1.Image = frame;
-                //        }
-                //    }
-                //    else
-                //    {
-                //        break;
-                //    }
-                //}
                 this.DisplayPic(this.picPath);
-                //monitor.Dispose();
             }
             catch (Exception ex)
             {
@@ -227,7 +206,7 @@ namespace MonitorSystemClient
             IntPtr image = CvInvoke.cvLoadImage(picPath, Emgu.CV.CvEnum.LOAD_IMAGE_TYPE.CV_LOAD_IMAGE_ANYCOLOR);
             Image<Bgr, Byte> dest = new Image<Bgr, byte>(CvInvoke.cvGetSize(image));
             CvInvoke.cvCopy(image, dest, IntPtr.Zero);
-            _videoBox1.Image = HeadDet.GetHead(dest).Frame;  
+            _videoBox1.Image = dest;
         }
 
         /// <summary>
@@ -267,11 +246,11 @@ namespace MonitorSystemClient
                 InitImageBox();
                 TvTestDataBind();
                 video = new Video();
-                dTimer = new DispatcherTimer(); 
+                dTimer = new DispatcherTimer();
                 IsOpenChecked = false;
                 DMessagePie.DisplayEvent += new DMessagePie.DisplayMessageDelegate(this.DisplayMessage);
                 DMessagePie.OnDisplayEvent("打开视频监控系统");
-                
+                type = 0;
                 InitBackgroundworker();
             }
             catch (MyException ex)
@@ -312,8 +291,13 @@ namespace MonitorSystemClient
         /// <param name="e"></param>
         private void backgroundWorker_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
-            int message =(int)e.UserState;
-            ShowDeteInfo("检测出人头:" + message.ToString()); 
+            int message = (int)e.UserState;
+            string mess = "检测出人头:" + message.ToString() + "个";
+            if (message > 0)
+            {
+                mess = mess + "已保存图片在C：\\data\\pic\\目录下";
+            }
+            ShowDeteInfo(mess);
         }
 
         /// <summary>
@@ -343,7 +327,7 @@ namespace MonitorSystemClient
             try
             {
                 BackgroundWorker worker = sender as BackgroundWorker;
-               // string path = e.Argument.ToString();
+                // string path = e.Argument.ToString();
                 MonitorCameraTreeModel model = e.Argument as MonitorCameraTreeModel;
                 string path = model.VideoPath;
                 if (path.ToUpper().Contains("JPG") || path.ToUpper().Contains("JPEG"))
@@ -411,7 +395,7 @@ namespace MonitorSystemClient
             }
 
             IsOpenChecked = !IsOpenChecked;
-           
+
             // 如果已经开始进行检测了
             if (IsOpenChecked)
             {
@@ -461,17 +445,7 @@ namespace MonitorSystemClient
         {
             try
             {
-                StringBuilder sb = new StringBuilder();
-                sb.AppendFormat("{0}", this.deteInfo.Text);
-
-                if (sb.Length < 80)
-                {
-                    sb.AppendFormat("\r\n{0}", info);
-                }
-                else
-                {
-                    sb = new StringBuilder(info);
-                }
+                StringBuilder sb = new StringBuilder(info);
                 this.deteInfo.Text = sb.ToString();
             }
             catch (Exception ex)
@@ -479,7 +453,18 @@ namespace MonitorSystemClient
                 this.deteInfo.Text = " 显示出现异常:" + ex.Message;
             }
         }
-      
+        private void ComboBoxItem_Selected(object sender, RoutedEventArgs e)
+        {
+            ComboBoxItem item = sender as ComboBoxItem;
+            if (item.Content.ToString() == "AdaBoost人头检测算法")
+            {
+                type = 0;
+            }
+            else
+            {
+                type = 1;
+            }
+        }
 
         #endregion
     }
